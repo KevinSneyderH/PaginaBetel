@@ -1,3 +1,5 @@
+import { assetPath } from '../utils/assetPath';
+
 export const COMPANY_DATA = {
   name: 'Supermercados Betel',
   shortName: 'Betel',
@@ -51,7 +53,7 @@ export const COMPANY_DATA = {
       title: 'Servicio a Domicilio',
       tagline: 'Rápido, seguro y directo a tu puerta',
       description: 'Pide tus productos favoritos de la canasta familiar cómodamente desde casa a través de WhatsApp o llamada directa a tu sede más cercana.',
-      image: '/images/domicilios.png',
+      image: assetPath('/images/domicilios.png'),
       badge: 'Cobertura local'
     },
     {
@@ -59,7 +61,7 @@ export const COMPANY_DATA = {
       title: 'Puntos Betel',
       tagline: 'Tus compras siempre suman',
       description: 'Acumula puntos con cada compra en cualquiera de nuestras 10 sedes y redímelos por descuentos especiales o fabulosos premios para tu hogar.',
-      image: '/images/puntos.png',
+      image: assetPath('/images/puntos.png'),
       badge: 'Fidelización'
     },
     {
@@ -67,7 +69,7 @@ export const COMPANY_DATA = {
       title: 'Agua Purificada Betel',
       tagline: 'Hidratación pura para toda la familia',
       description: 'Botellones de agua con los más altos estándares de purificación y filtrado para garantizar salud y bienestar a un precio inigualable.',
-      image: '/images/botellon.png',
+      image: assetPath('/images/botellon.png'),
       badge: 'Marca Propia'
     },
     {
@@ -75,7 +77,7 @@ export const COMPANY_DATA = {
       title: 'Servicio 24 Horas & Ventanilla',
       tagline: 'Siempre abiertos cuando nos necesitas',
       description: 'Contamos con sedes 24 horas y servicio por ventanilla nocturna para emergencias, antojos o compras imprevistas durante la madrugada.',
-      image: '/images/sedes/PRADOS-DEL-ESTE.webp',
+      image: assetPath('/images/sedes/PRADOS-DEL-ESTE.webp'),
       badge: '24/7 Disponible'
     }
   ],
@@ -95,7 +97,7 @@ export const COMPANY_DATA = {
     title: 'Cafeterías Betel',
     subtitle: 'El mejor aroma, sabor y descanso en tu día',
     description: 'Nuestras cafeterías son el punto de encuentro ideal para disfrutar de desayunos típicos, café recién colado, exquisita panadería horneada a diario, jugos naturales y comidas rápidas preparadas con los más frescos ingredientes.',
-    heroImage: '/images/cafeterias-hero.png',
+    heroImage: assetPath('/images/cafeterias-hero.png'),
     features: [
       'Café especial colombiano recién preparado',
       'Panadería caliente y pastelería fresca horneada todos los días',

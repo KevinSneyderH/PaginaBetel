@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { assetPath } from '../utils/assetPath';
 
 const SLIDES = [
-  { src: '/images/slider/16.png', alt: 'Supermercados Betel - Promoción 16' },
-  { src: '/images/slider/24.png', alt: 'Supermercados Betel - Servicio 24 Horas' },
-  { src: '/images/slider/Banner-de-domicilias.png', alt: 'Supermercados Betel - Domicilios' },
-  { src: '/images/slider/banner-gana-puntos.png', alt: 'Supermercados Betel - Gana Puntos' },
-  { src: '/images/slider/BANNER-MEDIOS.png', alt: 'Supermercados Betel - Medios de Pago' },
-  { src: '/images/slider/botellon-baner.png', alt: 'Supermercados Betel - Botellón Agua La Huerta' },
-  { src: '/images/slider/cafeteria.png', alt: 'Supermercados Betel - Cafetería' },
-  { src: '/images/slider/Cafeterias.png', alt: 'Supermercados Betel - Cafeterías Betel' },
+  { src: assetPath('/images/slider/16.png'), alt: 'Supermercados Betel - Promoción 16' },
+  { src: assetPath('/images/slider/24.png'), alt: 'Supermercados Betel - Servicio 24 Horas' },
+  { src: assetPath('/images/slider/Banner-de-domicilias.png'), alt: 'Supermercados Betel - Domicilios' },
+  { src: assetPath('/images/slider/banner-gana-puntos.png'), alt: 'Supermercados Betel - Gana Puntos' },
+  { src: assetPath('/images/slider/BANNER-MEDIOS.png'), alt: 'Supermercados Betel - Medios de Pago' },
+  { src: assetPath('/images/slider/botellon-baner.png'), alt: 'Supermercados Betel - Botellón Agua La Huerta' },
+  { src: assetPath('/images/slider/cafeteria.png'), alt: 'Supermercados Betel - Cafetería' },
+  { src: assetPath('/images/slider/Cafeterias.png'), alt: 'Supermercados Betel - Cafeterías Betel' },
 ];
 
 const AUTOPLAY_INTERVAL = 5000;

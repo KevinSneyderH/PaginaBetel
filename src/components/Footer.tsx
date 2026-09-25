@@ -1,6 +1,7 @@
 import { ArrowUp } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { SEDES_DATA } from '../data/sedesData';
+import { assetPath } from '../utils/assetPath';
 
 interface FooterProps {
   onOpenWhatsApp: () => void;
@@ -22,7 +23,7 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src="/logo.png"
+                src={assetPath('/logo.png')}
                 alt="Supermercados Betel"
                 className="h-12 w-auto object-contain"
               />

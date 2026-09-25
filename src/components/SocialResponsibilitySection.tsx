@@ -1,5 +1,6 @@
 import { Sun, Recycle, HeartHandshake, Leaf, ShieldCheck, ArrowRight } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
+import { assetPath } from '../utils/assetPath';
 
 export function SocialResponsibilitySection() {
   const { sustainability } = COMPANY_DATA;
@@ -80,7 +81,7 @@ export function SocialResponsibilitySection() {
         {/* Feature Image Banner */}
         <div className="rounded-3xl overflow-hidden border border-emerald-800/70 shadow-2xl relative">
           <img
-            src="/images/responsabilidad-social.jpg"
+            src={assetPath('/images/responsabilidad-social.jpg')}
             alt="Supermercados Betel Responsabilidad Social"
             className="w-full aspect-[21/9] object-cover"
           />

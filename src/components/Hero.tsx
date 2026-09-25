@@ -1,4 +1,5 @@
 import { MapPin, ShoppingBag, Clock, Sparkles, Coffee, ShieldCheck, Sun } from 'lucide-react';
+import { assetPath } from '../utils/assetPath';
 
 interface HeroProps {
   onOpenWhatsApp: () => void;
@@ -92,7 +93,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
               {/* Main Card with Official Assets */}
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-900 group">
                 <img
-                  src="/images/banner-nosotros.jpg"
+                  src={assetPath('/images/banner-nosotros.jpg')}
                   alt="Supermercados Betel Equipo y Sedes"
                   className="w-full aspect-video object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
                 />

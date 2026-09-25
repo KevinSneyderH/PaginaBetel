@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Building2, Target, Eye, TrendingUp, HeartHandshake, Award, ShieldCheck, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
+import { assetPath } from '../utils/assetPath';
 
 export function AboutSection() {
   const [activeTab, setActiveTab] = useState<'mision' | 'vision'>('mision');
@@ -108,7 +109,7 @@ export function AboutSection() {
             <div className="lg:col-span-6">
               <div className="relative rounded-3xl overflow-hidden shadow-xl border-4 border-slate-100">
                 <img
-                  src="/images/banner-nosotros.jpg"
+                  src={assetPath('/images/banner-nosotros.jpg')}
                   alt="Equipo Supermercados Betel"
                   className="w-full aspect-video object-cover"
                 />

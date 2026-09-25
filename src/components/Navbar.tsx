@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Phone, ShoppingBag, Clock } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
+import { assetPath } from '../utils/assetPath';
 
 interface NavbarProps {
   onOpenWhatsApp: (sedeId?: string) => void;
@@ -70,7 +71,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
             {/* Logo */}
             <a href="#inicio" className="flex items-center gap-3 group">
               <img
-                src="/logo.png"
+                src={assetPath('/logo.png')}
                 alt="Supermercados Betel"
                 className="h-12 sm:h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
               />

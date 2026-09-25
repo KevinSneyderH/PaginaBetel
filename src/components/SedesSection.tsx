@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, MapPin, Phone, MessageSquare, Clock, Coffee, Moon, Navigation } from 'lucide-react';
 import { SEDES_DATA, type Sede } from '../data/sedesData';
+import { assetPath } from '../utils/assetPath';
 
 interface SedesSectionProps {
   onSelectSedeForWhatsApp: (sede: Sede) => void;
@@ -151,7 +152,7 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
                     alt={`Supermercado Betel ${sede.name}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/images/banner-nosotros.jpg';
+                      (e.target as HTMLImageElement).src = assetPath('/images/banner-nosotros.jpg');
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent"></div>

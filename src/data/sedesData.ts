@@ -1,3 +1,5 @@
+import { assetPath } from '../utils/assetPath';
+
 export interface Sede {
   id: string;
   name: string;
@@ -23,7 +25,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Servicio 24 Horas continuo',
     hasCafeteria: true,
     is24Hours: true,
-    image: '/images/sedes/PRADOS-DEL-ESTE.webp',
+    image: assetPath('/images/sedes/PRADOS-DEL-ESTE.webp'),
     mapQuery: 'Supermercado Betel Prados del Este Cucuta'
   },
   {
@@ -36,7 +38,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Ventanilla nocturna: 9:00 PM a 7:00 AM',
     hasCafeteria: true,
     is24Hours: true,
-    image: '/images/sedes/LA-FLORESTA.webp',
+    image: assetPath('/images/sedes/LA-FLORESTA.webp'),
     mapQuery: 'Supermercado Betel La Floresta Cucuta'
   },
   {
@@ -49,7 +51,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Ventanilla nocturna: 12:00 AM a 7:00 AM',
     hasCafeteria: true,
     is24Hours: true,
-    image: '/images/sedes/BOCONO.webp',
+    image: assetPath('/images/sedes/BOCONO.webp'),
     mapQuery: 'Supermercado Betel Bocono Cucuta'
   },
   {
@@ -62,7 +64,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: undefined,
     hasCafeteria: false,
     is24Hours: false,
-    image: '/images/sedes/CEIBA-2.webp',
+    image: assetPath('/images/sedes/CEIBA-2.webp'),
     mapQuery: 'Supermercado Betel Ceiba 2 Cucuta'
   },
   {
@@ -75,7 +77,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: undefined,
     hasCafeteria: true,
     is24Hours: false,
-    image: '/images/sedes/Villamall.jpeg',
+    image: assetPath('/images/sedes/Villamall.jpeg'),
     mapQuery: 'Supermercado Betel Villa Mall Autopista Internacional'
   },
   {
@@ -88,7 +90,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Ventanilla nocturna: 9:00 PM a 6:00 AM',
     hasCafeteria: false,
     is24Hours: true,
-    image: '/images/sedes/SAN-RAFAEL.webp',
+    image: assetPath('/images/sedes/SAN-RAFAEL.webp'),
     mapQuery: 'Supermercado Betel San Rafael Cucuta'
   },
   {
@@ -101,7 +103,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Ventanilla nocturna: 8:30 PM a 6:30 AM',
     hasCafeteria: false,
     is24Hours: true,
-    image: '/images/sedes/EL-CONTENTO.webp',
+    image: assetPath('/images/sedes/EL-CONTENTO.webp'),
     mapQuery: 'Supermercado Betel El Contento Cucuta'
   },
   {
@@ -114,7 +116,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Ventanilla nocturna: 8:00 PM a 6:00 AM',
     hasCafeteria: true,
     is24Hours: true,
-    image: '/images/sedes/CHAPINERO.webp',
+    image: assetPath('/images/sedes/CHAPINERO.webp'),
     mapQuery: 'Supermercado Betel Chapinero Cucuta'
   },
   {
@@ -127,7 +129,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Viernes, Sábados y Domingos: 9:00 PM a 7:30 AM',
     hasCafeteria: false,
     is24Hours: false,
-    image: '/images/sedes/CHINACOTA.webp',
+    image: assetPath('/images/sedes/CHINACOTA.webp'),
     mapQuery: 'Supermercado Betel Chinacota'
   },
   {
@@ -140,7 +142,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Ventanilla nocturna: 9:00 PM a 7:00 AM',
     hasCafeteria: false,
     is24Hours: true,
-    image: '/images/sedes/LOS-PATIOS.webp',
+    image: assetPath('/images/sedes/LOS-PATIOS.webp'),
     mapQuery: 'Supermercado Betel Los Patios Cucuta'
   }
 ];

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ShoppingBag, Award, Droplets, Moon, Phone, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { assetPath } from '../utils/assetPath';
 
 interface ServicesSectionProps {
   onOpenWhatsApp: () => void;
@@ -14,7 +15,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
       name: 'Domicilios Betel',
       icon: <ShoppingBag className="w-4 h-4" />,
       tag: 'Tarifas desde $3.000',
-      banner: '/images/domicilios.png',
+      banner: assetPath('/images/domicilios.png'),
       alt: 'Tarifas y servicio de Domicilios Betel',
       summary: 'Recibe tus compras en la puerta de tu hogar de 7:00 a.m. a 7:00 p.m. Servicio rápido, seguro y confiable.',
       highlights: [
@@ -31,7 +32,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
       name: 'Gana Puntos Betel',
       icon: <Award className="w-4 h-4" />,
       tag: 'Acumula 0,3%',
-      banner: '/images/puntos.png',
+      banner: assetPath('/images/puntos.png'),
       alt: 'Programa de fidelización Gana Puntos Supermercados Betel',
       summary: '¡Por tus compras gana puntos! Más compras, más ganas. Únete gratis en cualquiera de nuestras 10 sedes.',
       highlights: [
@@ -48,7 +49,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
       name: 'Agua La Huerta (Botellón)',
       icon: <Droplets className="w-4 h-4" />,
       tag: '$8.900 la recarga',
-      banner: '/images/botellon.png',
+      banner: assetPath('/images/botellon.png'),
       alt: 'Recarga de Botellón de Agua La Huerta en Betel',
       summary: '100% Pura. Refresca tu vida con agua potable tratada y de máxima pureza para toda tu familia.',
       highlights: [
@@ -65,7 +66,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
       name: 'Servicio 24H & Ventanilla',
       icon: <Moon className="w-4 h-4" />,
       tag: 'Atención Continua',
-      banner: '/images/sedes/PRADOS-DEL-ESTE.webp',
+      banner: assetPath('/images/sedes/PRADOS-DEL-ESTE.webp'),
       alt: 'Sedes con ventanilla nocturna y servicio 24 horas',
       summary: 'Pensando en tus emergencias y necesidades a deshoras, contamos con sedes abiertas 24 horas y atención por ventanilla nocturna.',
       highlights: [
