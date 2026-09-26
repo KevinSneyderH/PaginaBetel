@@ -1,32 +1,28 @@
-# React + TypeScript + Vite
+# Pagina Betel
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Sitio web construido con React, TypeScript, Vite y Tailwind CSS.
 
-Currently, two official plugins are available:
+## Desarrollo local
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Requiere [Bun](https://bun.sh/). Desde la carpeta del proyecto:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```powershell
+bun install
+bun run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Vite mostrara la direccion local en la terminal, normalmente `http://localhost:5173`.
+
+## GitHub Pages
+
+El sitio se publica automaticamente al enviar cambios a la rama `main`. El workflow se encuentra en `.github/workflows/deploy.yml` y construye el sitio con la ruta correcta para un repositorio de GitHub Pages.
+
+Despues del primer `push`, abre el repositorio en GitHub y ve a **Settings > Pages**. En **Build and deployment**, selecciona **GitHub Actions** como fuente. La direccion publicada aparecera en la pestana **Actions**, al terminar el workflow.
+
+Tambien puedes iniciarlo manualmente desde **Actions > Deploy to GitHub Pages > Run workflow**.
+
+Para comprobar la compilacion antes de publicar:
+
+```powershell
+bun run build
+```
