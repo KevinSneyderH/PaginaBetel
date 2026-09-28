@@ -16,15 +16,44 @@ const SLIDES = [
 const AUTOPLAY_INTERVAL = 5000;
 
 export function BannerSlider() {
-  const [current, setCurrent] = useState(0);
+  // Track includes a clone at each end for seamless looping.
+  const [trackIndex, setTrackIndex] = useState(1);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const slidesWithClones = [SLIDES[SLIDES.length - 1], ...SLIDES, SLIDES[0]];
+  const current = trackIndex === 0
+    ? SLIDES.length - 1
+    : trackIndex === SLIDES.length + 1
+      ? 0
+      : trackIndex - 1;
 
   const goTo = useCallback((index: number) => {
-    setCurrent((index + SLIDES.length) % SLIDES.length);
+    setTransitionEnabled(true);
+    setTrackIndex(((index + SLIDES.length) % SLIDES.length) + 1);
   }, []);
 
-  const next = useCallback(() => goTo(current + 1), [current, goTo]);
-  const prev = useCallback(() => goTo(current - 1), [current, goTo]);
+  const next = useCallback(() => {
+    setTransitionEnabled(true);
+    setTrackIndex((index) => index + 1);
+  }, []);
+  const prev = useCallback(() => {
+    setTransitionEnabled(true);
+    setTrackIndex((index) => index - 1);
+  }, []);
+
+  const handleTrackTransitionEnd = () => {
+    if (trackIndex === 0 || trackIndex === SLIDES.length + 1) {
+      setTransitionEnabled(false);
+      setTrackIndex(trackIndex === 0 ? SLIDES.length : 1);
+    }
+  };
+
+  useEffect(() => {
+    if (!transitionEnabled) {
+      const frame = requestAnimationFrame(() => setTransitionEnabled(true));
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [transitionEnabled]);
 
   // Autoplay
   useEffect(() => {
@@ -40,19 +69,27 @@ export function BannerSlider() {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Slides Container */}
-      <div className="relative w-full aspect-[21/9] sm:aspect-[3/1] md:aspect-[3.5/1]">
-        {SLIDES.map((slide, index) => (
+      <div className="relative w-full aspect-[21/9] sm:aspect-[3/1] md:aspect-[3.5/1] overflow-hidden">
+        <div
+          className={`flex h-full ${transitionEnabled ? 'transition-transform duration-700 ease-in-out' : ''}`}
+          style={{
+            width: `${slidesWithClones.length * 100}%`,
+            transform: `translateX(-${(trackIndex * 100) / slidesWithClones.length}%)`,
+          }}
+          onTransitionEnd={handleTrackTransitionEnd}
+        >
+        {slidesWithClones.map((slide, index) => (
           <img
-            key={slide.src}
+            key={`${slide.src}-${index}`}
             src={slide.src}
             alt={slide.alt}
-            className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-700 ease-in-out ${
-              index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
-            loading={index === 0 ? 'eager' : 'lazy'}
+            className="h-full flex-none object-cover"
+            style={{ width: `${100 / slidesWithClones.length}%` }}
+            loading={index === 1 ? 'eager' : 'lazy'}
             draggable={false}
           />
         ))}
+        </div>
       </div>
 
       {/* Arrow: Previous */}

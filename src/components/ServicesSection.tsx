@@ -136,12 +136,12 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
         <div className="min-w-0 bg-white rounded-3xl p-4 sm:p-8 shadow-xl border border-slate-200/90 transition-all">
           <div className="space-y-6">
             
-            {/* Banner Container: Natural Aspect Ratio without any cropping */}
+            {/* El servicio nocturno usa una imagen panorámica para darle mayor presencia. */}
             <div className="relative rounded-2xl overflow-hidden shadow-md border border-slate-200 bg-slate-100 group">
               <img
                 src={currentService.banner}
                 alt={currentService.alt}
-                className="w-full h-auto max-h-[500px] object-contain mx-auto block group-hover:scale-[1.01] transition-transform duration-300"
+                className={`${currentService.id === 'nocturno' ? 'w-full h-72 sm:h-96 object-cover' : 'w-full h-auto max-h-[500px] object-contain'} mx-auto block group-hover:scale-[1.01] transition-transform duration-300`}
               />
             </div>
 
