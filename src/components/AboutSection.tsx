@@ -1,10 +1,10 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Building2, Target, Eye, TrendingUp, HeartHandshake, Award, ShieldCheck, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { assetPath } from '../utils/assetPath';
 
 export function AboutSection() {
-  const [activeTab, setActiveTab] = useState<'mision' | 'vision'>('mision');
+  const [activeTab, setActiveTab] = useState<'quienes' | 'mision' | 'vision'>('quienes');
 
   const valueIcons: Record<string, React.ReactNode> = {
     TrendingUp: <TrendingUp className="w-5 h-5 text-orange-500" />,
@@ -19,27 +19,34 @@ export function AboutSection() {
     <section id="nosotros" className="py-20 bg-slate-50 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-200 text-lime-900 text-xs font-bold uppercase tracking-wider mb-3">
             <Building2 className="w-3.5 h-3.5 text-lime-700" />
             Nuestra Historia & Compromiso
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4">
-            34 Años Creciendo Junto a las Familias de Nuestra Región
+            Conócenos
           </h2>
-          <p className="text-slate-600 text-base sm:text-lg">
-            Somos una empresa Nortesantandereana, de origen familiar, fundada con la misión de servir y brindar la más cálida atención basada en el respeto, la excelencia y la cercanía con cada persona.
-          </p>
         </div>
 
-        {/* Mission & Vision Tabs Card */}
+        {/* About, Mission & Vision Tabs Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200/80 mb-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             {/* Left Column: Interactive Switcher */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="flex gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit">
+              <div className="flex flex-wrap gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit">
+                <button
+                  onClick={() => setActiveTab('quienes')}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                    activeTab === 'quienes'
+                      ? 'bg-gradient-to-r from-lime-600 to-emerald-600 text-white shadow-md shadow-lime-600/30'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span>Quiénes somos</span>
+                </button>
                 <button
                   onClick={() => setActiveTab('mision')}
                   className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
@@ -65,7 +72,19 @@ export function AboutSection() {
               </div>
 
               <div className="min-h-[140px] flex items-center">
-                {activeTab === 'mision' ? (
+                {activeTab === 'quienes' ? (
+                  <div className="animate-in fade-in duration-300">
+                    <h3 className="text-2xl font-black text-slate-900 mb-3 flex items-center gap-2">
+                      <Building2 className="w-6 h-6 text-lime-600" />
+                      ¡Quiénes somos!
+                    </h3>
+                    <div className="space-y-3 text-slate-600 text-base leading-relaxed">
+                      <p>Somos una empresa Nortesantandereana, de origen familiar, creada hace 34 años con el propósito de servir y prestar la mejor atención a nuestros clientes, basados en la excelencia, respeto y el valor de cada persona.</p>
+                      <p>Estamos dedicados a la distribución de productos de la canasta familiar y comunicación celular.</p>
+                      <p>Entregamos a nuestros clientes servicios con altos criterios de calidad, garantizando los mejores precios.</p>
+                    </div>
+                  </div>
+                ) : activeTab === 'mision' ? (
                   <div className="animate-in fade-in duration-300">
                     <h3 className="text-2xl font-black text-slate-900 mb-3 flex items-center gap-2">
                       <Target className="w-6 h-6 text-lime-600" />
@@ -92,11 +111,11 @@ export function AboutSection() {
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-100 text-center">
                 <div className="p-3 rounded-2xl bg-lime-50/70 border border-lime-200">
                   <div className="text-2xl font-black text-lime-700">34+</div>
-                  <div className="text-[11px] font-semibold text-slate-600">Años de Servicio</div>
+                  <div className="text-[11px] font-semibold text-slate-600">AÃ±os de Servicio</div>
                 </div>
                 <div className="p-3 rounded-2xl bg-orange-50/70 border border-orange-200">
                   <div className="text-2xl font-black text-orange-600">10</div>
-                  <div className="text-[11px] font-semibold text-slate-600">Sedes en la Región</div>
+                  <div className="text-[11px] font-semibold text-slate-600">Sedes en la RegiÃ³n</div>
                 </div>
                 <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
                   <div className="text-2xl font-black text-amber-600">100%</div>
@@ -119,7 +138,7 @@ export function AboutSection() {
                       <Sparkles className="w-3.5 h-3.5" />
                       Equipo Humano Capacitado
                     </div>
-                    <div className="text-lg font-bold">Generando gratas experiencias de compra todos los días</div>
+                    <div className="text-lg font-bold">Generando gratas experiencias de compra todos los dÃ­as</div>
                   </div>
                 </div>
               </div>

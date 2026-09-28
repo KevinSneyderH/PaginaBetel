@@ -210,63 +210,6 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
 
           </div>
         </div>
-
-        {/* 3 Quick Cards Summary below */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          
-          <div
-            onClick={() => setActiveTab('domicilios')}
-            className={`p-6 rounded-3xl bg-white border transition-all cursor-pointer ${
-              activeTab === 'domicilios'
-                ? 'border-orange-500 shadow-lg ring-2 ring-orange-200'
-                : 'border-slate-200 hover:border-orange-300 shadow-sm'
-            }`}
-          >
-            <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center mb-3">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-slate-900 text-base mb-1">Domicilios Betel</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Envíos desde $3.000. Haz tu pedido al 317 679 7058 de 7:00 a.m. a 7:00 p.m.
-            </p>
-          </div>
-
-          <div
-            onClick={() => setActiveTab('puntos')}
-            className={`p-6 rounded-3xl bg-white border transition-all cursor-pointer ${
-              activeTab === 'puntos'
-                ? 'border-lime-500 shadow-lg ring-2 ring-lime-200'
-                : 'border-slate-200 hover:border-lime-300 shadow-sm'
-            }`}
-          >
-            <div className="w-10 h-10 rounded-xl bg-lime-100 text-lime-700 flex items-center justify-center mb-3">
-              <Award className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-slate-900 text-base mb-1">Gana Puntos Betel</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Acumula el 0,3% de todas tus compras y duplica tus puntos el día de tu cumpleaños.
-            </p>
-          </div>
-
-          <div
-            onClick={() => setActiveTab('botellon')}
-            className={`p-6 rounded-3xl bg-white border transition-all cursor-pointer ${
-              activeTab === 'botellon'
-                ? 'border-teal-500 shadow-lg ring-2 ring-teal-200'
-                : 'border-slate-200 hover:border-teal-300 shadow-sm'
-            }`}
-          >
-            <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-3">
-              <Droplets className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-slate-900 text-base mb-1">Agua La Huerta</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Recarga de botellón purificado y potable a solo $8.900 en todas nuestras sedes.
-            </p>
-          </div>
-
-        </div>
-
       </div>
     </section>
   );

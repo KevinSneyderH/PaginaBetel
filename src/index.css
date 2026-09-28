@@ -1,8 +1,76 @@
 @import "tailwindcss";
 
+/* Betel palette: leafy greens, fresh citrus, warm orange and soft ivory. */
+@theme {
+  --color-slate-50: #fbfcf7;
+  --color-slate-100: #f3f6ec;
+  --color-slate-200: #e4eadb;
+  --color-slate-300: #cbd7bd;
+  --color-slate-400: #a3b394;
+  --color-slate-500: #748469;
+  --color-slate-600: #59694f;
+  --color-slate-700: #3b5037;
+  --color-slate-800: #203a25;
+  --color-slate-900: #12351d;
+  --color-slate-950: #092b17;
+
+  --color-emerald-50: #f3f9e9;
+  --color-emerald-100: #e5f2ce;
+  --color-emerald-200: #cde7a5;
+  --color-emerald-300: #afd66f;
+  --color-emerald-400: #8bc22f;
+  --color-emerald-500: #72aa12;
+  --color-emerald-600: #5d9200;
+  --color-emerald-700: #4c7900;
+  --color-emerald-800: #3b6205;
+  --color-emerald-900: #2c4d0c;
+  --color-emerald-950: #19340a;
+
+  --color-lime-50: #f7fbe9;
+  --color-lime-100: #edf6cc;
+  --color-lime-200: #dcef9a;
+  --color-lime-300: #c5e85c;
+  --color-lime-400: #a9d52b;
+  --color-lime-500: #8bbc00;
+  --color-lime-600: #6fa300;
+  --color-lime-700: #588500;
+  --color-lime-800: #456a08;
+  --color-lime-900: #36540d;
+  --color-lime-950: #20350b;
+
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #ff9b19;
+  --color-orange-500: #ff8100;
+  --color-orange-600: #ed6e00;
+  --color-orange-700: #c45500;
+  --color-orange-800: #9c4307;
+  --color-orange-900: #7e390b;
+  --color-orange-950: #451b03;
+
+  --color-amber-50: #fff9eb;
+  --color-amber-100: #fff0c9;
+  --color-amber-200: #ffe098;
+  --color-amber-300: #ffca5c;
+  --color-amber-400: #ffad24;
+  --color-amber-500: #f99100;
+  --color-amber-600: #de7400;
+  --color-amber-700: #b95800;
+  --color-amber-800: #91450a;
+  --color-amber-900: #71390c;
+  --color-amber-950: #411d05;
+
+  --color-teal-600: #5d9200;
+  --color-teal-700: #4c7900;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background: #fffdf8;
+    color: #12351d;
   }
 }
