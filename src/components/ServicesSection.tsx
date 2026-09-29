@@ -22,10 +22,9 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
         'Menos de $30.000: Domicilio a $5.000',
         'Entre $30.000 y $99.900: Domicilio a $4.000',
         'Más de $100.000: Domicilio a solo $3.000',
-        'Línea exclusiva WhatsApp: 317 679 7058'
+        'Atención por WhatsApp en la sede de tu preferencia'
       ],
       actionText: 'Pedir Domicilio por WhatsApp',
-      actionPhone: '3176797058'
     },
     {
       id: 'puntos' as const,
@@ -59,7 +58,6 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
         'Disponible en todas nuestras 10 sedes'
       ],
       actionText: 'Pedir Botellón a Domicilio',
-      actionPhone: '3176797058'
     },
     {
       id: 'nocturno' as const,
@@ -187,7 +185,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
                     <ShoppingBag className="w-4 h-4" />
                     <span>{currentService.actionText}</span>
                   </a>
-                ) : (
+                ) : currentService.actionLink ? (
                   <a
                     href={currentService.actionLink}
                     className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 text-sm cursor-pointer"
@@ -195,6 +193,14 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
                     <span>{currentService.actionText}</span>
                     <ArrowRight className="w-4 h-4" />
                   </a>
+                ) : (
+                  <button
+                    onClick={onOpenWhatsApp}
+                    className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 text-sm cursor-pointer"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>{currentService.actionText}</span>
+                  </button>
                 )}
 
                 <button

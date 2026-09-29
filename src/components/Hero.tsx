@@ -7,7 +7,7 @@ interface HeroProps {
 
 export function Hero({ onOpenWhatsApp }: HeroProps) {
   return (
-    <section id="inicio" className="relative overflow-hidden bg-gradient-to-b from-lime-50/50 via-white to-orange-50/30 pt-8 pb-16 lg:pt-14 lg:pb-24">
+    <section id="inicio" className="scroll-mt-20 relative overflow-hidden bg-gradient-to-b from-lime-50/50 via-white to-orange-50/30 pt-8 pb-16 lg:pt-14 lg:pb-24">
       {/* Background blur decorative blobs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-lime-200/40 rounded-full blur-3xl"></div>

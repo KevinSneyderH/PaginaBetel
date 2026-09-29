@@ -29,7 +29,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fffdf8] text-slate-900 font-sans selection:bg-emerald-600 selection:text-white">
+    <div id="top" className="min-h-screen bg-[#fffdf8] text-slate-900 font-sans selection:bg-emerald-600 selection:text-white">
       {/* Sticky Smart Navigation */}
       <Navbar onOpenWhatsApp={() => handleOpenWhatsApp()} />
 

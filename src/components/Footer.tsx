@@ -109,6 +109,14 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
               >
                 Escribir por WhatsApp
               </button>
+              <a
+                href={`https://api.whatsapp.com/send/?phone=57${COMPANY_DATA.pqrsPhone}&text=${encodeURIComponent(COMPANY_DATA.pqrsMessage)}&type=phone_number&app_absent=0`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-orange-300 hover:underline"
+              >
+                PQRS: 317 679 7058
+              </a>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400">
               {SEDES_DATA.map((sede) => (

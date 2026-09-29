@@ -6,6 +6,8 @@ export const COMPANY_DATA = {
   tagline: '34 años al servicio de Norte de Santander',
   years: 34,
   generalPhone: '3154937743',
+  pqrsPhone: '3176797058',
+  pqrsMessage: 'Hola, quisiera colocar una PQRS, ¿podrían ayudarme?',
   whatsappMessage: '¡Hola Supermercados Betel! Me gustaría recibir información sobre promociones y domicilios.',
   socials: {
     facebook: 'https://web.facebook.com/supermercadobetel/?locale=es_LA',

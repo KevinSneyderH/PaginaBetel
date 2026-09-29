@@ -69,7 +69,7 @@ export function BannerSlider() {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Slides Container */}
-      <div className="relative w-full aspect-[21/9] sm:aspect-[3/1] md:aspect-[3.5/1] overflow-hidden">
+      <div className="relative w-full aspect-[3/1] overflow-hidden bg-slate-900">
         <div
           className={`flex h-full ${transitionEnabled ? 'transition-transform duration-700 ease-in-out' : ''}`}
           style={{
@@ -83,7 +83,7 @@ export function BannerSlider() {
             key={`${slide.src}-${index}`}
             src={slide.src}
             alt={slide.alt}
-            className="h-full flex-none object-cover"
+            className="h-full flex-none bg-slate-900 object-contain"
             style={{ width: `${100 / slidesWithClones.length}%` }}
             loading={index === 1 ? 'eager' : 'lazy'}
             draggable={false}
@@ -95,7 +95,7 @@ export function BannerSlider() {
       {/* Arrow: Previous */}
       <button
         onClick={prev}
-        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-10 sm:w-10 sm:h-12 rounded-full bg-black/15 hover:bg-black/35 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
         aria-label="Anterior"
       >
         <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -104,7 +104,7 @@ export function BannerSlider() {
       {/* Arrow: Next */}
       <button
         onClick={next}
-        className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-10 sm:w-10 sm:h-12 rounded-full bg-black/15 hover:bg-black/35 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
         aria-label="Siguiente"
       >
         <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
