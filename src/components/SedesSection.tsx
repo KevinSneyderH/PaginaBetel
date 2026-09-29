@@ -11,6 +11,7 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState<string>('Todas');
   const [filter24Hours, setFilter24Hours] = useState(false);
+  const [filterVentanilla, setFilterVentanilla] = useState(false);
   const [filterCafeteria, setFilterCafeteria] = useState(false);
 
   const cities = ['Todas', 'Cúcuta', 'Los Patios', 'Chinácota', 'Villa del Rosario'];
@@ -24,11 +25,12 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
 
       const matchesCity = selectedCity === 'Todas' || sede.city === selectedCity;
       const matches24h = !filter24Hours || sede.is24Hours;
+      const matchesVentanilla = !filterVentanilla || sede.hasVentanilla;
       const matchesCafeteria = !filterCafeteria || sede.hasCafeteria;
 
-      return matchesSearch && matchesCity && matches24h && matchesCafeteria;
+      return matchesSearch && matchesCity && matches24h && matchesVentanilla && matchesCafeteria;
     });
-  }, [searchTerm, selectedCity, filter24Hours, filterCafeteria]);
+  }, [searchTerm, selectedCity, filter24Hours, filterVentanilla, filterCafeteria]);
 
   return (
     <section id="sedes" className="py-20 bg-slate-50 relative">
@@ -44,7 +46,7 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
             Encuentra tu Supermercado Betel más cercano
           </h2>
           <p className="text-slate-600 text-base sm:text-lg">
-            Estamos presentes en 10 puntos estratégicos de Cúcuta, Los Patios y Chinácota con servicio de calidad, ventanilla nocturna y atención personalizada.
+            Estamos presentes en 10 puntos de la región: dos sedes 24 horas y siete con servicio de ventanilla.
           </p>
         </div>
 
@@ -100,7 +102,19 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
                 }`}
               >
                 <Moon className="w-3.5 h-3.5" />
-                <span>24H / Ventanilla</span>
+                <span>24 Horas</span>
+              </button>
+
+              <button
+                onClick={() => setFilterVentanilla(!filterVentanilla)}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  filterVentanilla
+                    ? 'bg-emerald-700 text-white shadow-md shadow-emerald-700/30'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Ventanilla</span>
               </button>
 
               <button
@@ -122,12 +136,13 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
         {/* Results Counter */}
         <div className="flex items-center justify-between mb-6 text-sm text-slate-500 font-medium px-1">
           <span>Mostrando {filteredSedes.length} de {SEDES_DATA.length} sedes</span>
-          {(searchTerm || selectedCity !== 'Todas' || filter24Hours || filterCafeteria) && (
+          {(searchTerm || selectedCity !== 'Todas' || filter24Hours || filterVentanilla || filterCafeteria) && (
             <button
               onClick={() => {
                 setSearchTerm('');
                 setSelectedCity('Todas');
                 setFilter24Hours(false);
+                setFilterVentanilla(false);
                 setFilterCafeteria(false);
               }}
               className="text-orange-600 hover:text-orange-700 hover:underline text-xs font-bold cursor-pointer"
@@ -166,6 +181,12 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
                       <span className="px-2.5 py-1 rounded-lg bg-orange-600 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm">
                         <Moon className="w-3 h-3 text-white" />
                         24 Horas
+                      </span>
+                    )}
+                    {sede.hasVentanilla && (
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm">
+                        <Clock className="w-3 h-3" />
+                        Ventanilla
                       </span>
                     )}
                   </div>
@@ -268,6 +289,7 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
                 setSearchTerm('');
                 setSelectedCity('Todas');
                 setFilter24Hours(false);
+                setFilterVentanilla(false);
                 setFilterCafeteria(false);
               }}
               className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl text-xs font-bold cursor-pointer"

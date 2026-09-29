@@ -10,6 +10,7 @@ export interface Sede {
   nightService?: string;
   hasCafeteria: boolean;
   is24Hours: boolean;
+  hasVentanilla: boolean;
   image: string;
   mapQuery: string;
 }
@@ -21,10 +22,10 @@ export const SEDES_DATA: Sede[] = [
     city: 'Cúcuta',
     address: 'Av 8 #5-46, a 100mts del Puente la Gazapa',
     phone: '3154937743',
-    hours: 'Puertas abiertas desde las 6:00 AM',
-    nightService: 'Servicio 24 Horas continuo',
+    hours: 'Abierto las 24 horas',
     hasCafeteria: true,
     is24Hours: true,
+    hasVentanilla: false,
     image: assetPath('/images/sedes/PRADOS-DEL-ESTE.webp'),
     mapQuery: 'Supermercado Betel Prados del Este Cucuta'
   },
@@ -37,7 +38,8 @@ export const SEDES_DATA: Sede[] = [
     hours: '7:00 AM a 9:00 PM',
     nightService: 'Ventanilla nocturna: 9:00 PM a 7:00 AM',
     hasCafeteria: true,
-    is24Hours: true,
+    is24Hours: false,
+    hasVentanilla: true,
     image: assetPath('/images/sedes/LA-FLORESTA.webp'),
     mapQuery: 'Supermercado Betel La Floresta Cucuta'
   },
@@ -50,7 +52,8 @@ export const SEDES_DATA: Sede[] = [
     hours: '7:00 AM a 12:00 AM',
     nightService: 'Ventanilla nocturna: 12:00 AM a 7:00 AM',
     hasCafeteria: true,
-    is24Hours: true,
+    is24Hours: false,
+    hasVentanilla: true,
     image: assetPath('/images/sedes/BOCONO.webp'),
     mapQuery: 'Supermercado Betel Bocono Cucuta'
   },
@@ -61,9 +64,10 @@ export const SEDES_DATA: Sede[] = [
     address: 'Av 3N #7 AN-05',
     phone: '3174024476',
     hours: '6:30 AM a 9:00 PM',
-    nightService: undefined,
+    nightService: 'Servicio de ventanilla nocturna',
     hasCafeteria: false,
     is24Hours: false,
+    hasVentanilla: true,
     image: assetPath('/images/sedes/CEIBA-2.webp'),
     mapQuery: 'Supermercado Betel Ceiba 2 Cucuta'
   },
@@ -73,10 +77,11 @@ export const SEDES_DATA: Sede[] = [
     city: 'Villa del Rosario',
     address: 'Vía Autopista Internacional, junto a la parroquia Divino Niño Jesús',
     phone: '3154937743',
-    hours: '7:00 AM a 9:00 PM',
+    hours: 'Abierto las 24 horas',
     nightService: undefined,
     hasCafeteria: true,
-    is24Hours: false,
+    is24Hours: true,
+    hasVentanilla: false,
     image: assetPath('/images/sedes/Villamall.jpeg'),
     mapQuery: 'Supermercado Betel Villa Mall Autopista Internacional'
   },
@@ -87,9 +92,9 @@ export const SEDES_DATA: Sede[] = [
     address: 'Av 1 #25-43 – Junto a la Iglesia San Rafael',
     phone: '3162278888',
     hours: '6:00 AM a 9:00 PM',
-    nightService: 'Ventanilla nocturna: 9:00 PM a 6:00 AM',
     hasCafeteria: false,
-    is24Hours: true,
+    is24Hours: false,
+    hasVentanilla: false,
     image: assetPath('/images/sedes/SAN-RAFAEL.webp'),
     mapQuery: 'Supermercado Betel San Rafael Cucuta'
   },
@@ -102,7 +107,8 @@ export const SEDES_DATA: Sede[] = [
     hours: '6:30 AM a 8:30 PM',
     nightService: 'Ventanilla nocturna: 8:30 PM a 6:30 AM',
     hasCafeteria: false,
-    is24Hours: true,
+    is24Hours: false,
+    hasVentanilla: true,
     image: assetPath('/images/sedes/EL-CONTENTO.webp'),
     mapQuery: 'Supermercado Betel El Contento Cucuta'
   },
@@ -115,7 +121,8 @@ export const SEDES_DATA: Sede[] = [
     hours: '6:00 AM a 8:00 PM',
     nightService: 'Ventanilla nocturna: 8:00 PM a 6:00 AM',
     hasCafeteria: true,
-    is24Hours: true,
+    is24Hours: false,
+    hasVentanilla: true,
     image: assetPath('/images/sedes/CHAPINERO.webp'),
     mapQuery: 'Supermercado Betel Chapinero Cucuta'
   },
@@ -129,6 +136,7 @@ export const SEDES_DATA: Sede[] = [
     nightService: 'Viernes, Sábados y Domingos: 9:00 PM a 7:30 AM',
     hasCafeteria: false,
     is24Hours: false,
+    hasVentanilla: true,
     image: assetPath('/images/sedes/CHINACOTA.webp'),
     mapQuery: 'Supermercado Betel Chinacota'
   },
@@ -141,7 +149,8 @@ export const SEDES_DATA: Sede[] = [
     hours: '6:30 AM a 9:00 PM',
     nightService: 'Ventanilla nocturna: 9:00 PM a 7:00 AM',
     hasCafeteria: false,
-    is24Hours: true,
+    is24Hours: false,
+    hasVentanilla: true,
     image: assetPath('/images/sedes/LOS-PATIOS.webp'),
     mapQuery: 'Supermercado Betel Los Patios Cucuta'
   }
