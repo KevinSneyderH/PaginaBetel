@@ -7,7 +7,7 @@ const benefits = [
 ];
 
 const vacancies = [
-  { title: 'Cajero/a', description: 'Atención al cliente, registro de productos y manejo de caja.' },
+  { title: 'Auxiliar en Cajero/a', description: 'Atención al cliente, registro de productos y manejo de caja.' },
   { title: 'Auxiliar de surtido', description: 'Organización, rotación y reposición de productos en tienda.' },
   { title: 'Auxiliar de cafetería', description: 'Apoyo en la preparación y atención de nuestros clientes.' },
 ];
