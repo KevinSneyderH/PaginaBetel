@@ -8,6 +8,7 @@ import { CafeteriaSection } from './components/CafeteriaSection';
 import { ServicesSection } from './components/ServicesSection';
 import { AboutSection } from './components/AboutSection';
 import { SocialResponsibilitySection } from './components/SocialResponsibilitySection';
+import { CareersSection } from './components/CareersSection';
 import { Footer } from './components/Footer';
 import { FloatingWhatsAppButton } from './components/FloatingWhatsAppButton';
 import { WhatsAppModal } from './components/WhatsAppModal';
@@ -55,6 +56,9 @@ export default function App() {
 
       {/* Social & Environmental Responsibility (Solar Energy & Circular Economy) */}
       <SocialResponsibilitySection />
+
+      {/* Work with us */}
+      <CareersSection />
 
       {/* Footer */}
       <Footer onOpenWhatsApp={() => handleOpenWhatsApp()} />

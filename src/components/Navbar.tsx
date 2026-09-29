@@ -27,6 +27,8 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
     { name: 'Servicios', href: '#servicios' },
     { name: 'Nosotros', href: '#nosotros' },
     { name: 'Sostenibilidad', href: '#sostenibilidad' },
+    {name: 'Trabaja Con Nosotros', href: '#trabaja'},
+
   ];
 
   return (

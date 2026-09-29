@@ -95,6 +95,7 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
               <li><a href="#servicios" className="hover:text-white transition-colors">Servicios & Puntos</a></li>
               <li><a href="#nosotros" className="hover:text-white transition-colors">Quiénes Somos</a></li>
               <li><a href="#sostenibilidad" className="hover:text-white transition-colors">Sostenibilidad</a></li>
+              <li><a href="#trabaja" className="hover:text-white transition-colors">Trabaja con nosotros</a></li>
             </ul>
           </div>
 
