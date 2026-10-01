@@ -28,6 +28,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
     { name: 'Nosotros', href: '#nosotros' },
     { name: 'Sostenibilidad', href: '#sostenibilidad' },
     {name: 'Trabaja Con Nosotros', href: '#trabaja'},
+    { name: 'Login', href: 'http://179.1.131.26:7178/login' },
 
   ];
 
@@ -73,7 +74,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <a href="#top" aria-label="Volver al inicio de la página" className="flex items-center gap-3 group">
+            <a href="#top" aria-label="Volver al inicio de la página" className="flex items-center gap-3 group lg:mr-6 xl:mr-8">
               <img
                 src={assetPath('/logo.png')}
                 alt="Supermercados Betel"
@@ -95,7 +96,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
             </nav>
 
             {/* CTA Buttons in Betel Orange & Lime */}
-            <div className="hidden sm:flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-3 shrink-0 lg:ml-8">
               <button
                 onClick={() => onOpenWhatsApp()}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
