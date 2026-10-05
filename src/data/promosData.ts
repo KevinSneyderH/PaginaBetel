@@ -57,7 +57,7 @@ export const PROMOS_DATA: PromoDay[] = [
     dayName: 'Viernes',
     shortDay: 'VIE',
     title: 'Viernes de Cerdo & Pescado',
-    description: 'Todo listo para el fin de semana con super ofertas en pasabocas, licores, aseo y despensa.',
+    description: 'Todo listo para el fin de semana con ofertas increíbles en pasabocas, licores, aseo y despensa.',
     badge: 'Fin de Semana Betel',
     banner: assetPath('/images/promo-viernes.png'),
     highlights: ['Snacks, bebidas y confitería', 'Línea completa de aseo para el hogar', 'Puntos dobles Betel']

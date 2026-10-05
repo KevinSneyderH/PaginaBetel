@@ -133,7 +133,7 @@ export const SEDES_DATA: Sede[] = [
     address: 'Manzana A - Lote 4, Conjunto Campestre San Cristóbal',
     phone: '3165265198',
     hours: '7:30 AM a 9:00 PM',
-    nightService: 'Viernes, Sábados y Domingos: 9:00 PM a 7:30 AM',
+    nightService: 'Viernes, sábados y domingos: 9:00 p. m. a 7:30 a. m.',
     hasCafeteria: false,
     is24Hours: false,
     hasVentanilla: true,

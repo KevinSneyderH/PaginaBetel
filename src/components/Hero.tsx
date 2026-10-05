@@ -22,7 +22,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
             {/* Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-300/80 text-lime-900 text-xs sm:text-sm font-bold mb-6 shadow-sm">
               <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
-              <span>34 Años al Servicio de Norte de Santander</span>
+              <span>34 años al servicio de Norte de Santander</span>
             </div>
 
             {/* Main Headline */}
@@ -45,7 +45,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-lime-600 hover:bg-lime-700 text-white font-black rounded-2xl shadow-lg shadow-lime-600/30 hover:shadow-lime-600/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
                 <MapPin className="w-5 h-5 text-white" />
-                <span>Ver Nuestras 10 Sedes</span>
+                <span>Ver nuestras 10 sedes</span>
               </a>
 
               <button
@@ -63,7 +63,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
                 <div className="p-1.5 rounded-lg bg-lime-100 text-lime-700">
                   <MapPin className="w-4 h-4" />
                 </div>
-                <span>10 Sedes activas</span>
+                <span>10 sedes activas</span>
               </div>
               <div className="flex items-center gap-2 text-slate-700 text-xs sm:text-sm font-semibold">
                 <div className="p-1.5 rounded-lg bg-orange-100 text-orange-600">
@@ -121,7 +121,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
                   34
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900">Años de Historia</div>
+                  <div className="text-xs font-bold text-slate-900">Años de historia</div>
                   <div className="text-[11px] text-slate-500 font-medium">Fundación Familiar</div>
                 </div>
               </div>

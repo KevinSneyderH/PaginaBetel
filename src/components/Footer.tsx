@@ -89,11 +89,11 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
             <h4 className="text-white font-bold text-sm tracking-wider uppercase">Navegación</h4>
             <ul className="space-y-2 text-sm text-slate-400">
               <li><a href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
-              <li><a href="#sedes" className="hover:text-white transition-colors">Nuestras 10 Sedes</a></li>
-              <li><a href="#promociones" className="hover:text-white transition-colors">Promociones del Día</a></li>
+              <li><a href="#sedes" className="hover:text-white transition-colors">Nuestras 10 sedes</a></li>
+              <li><a href="#promociones" className="hover:text-white transition-colors">Promociones del día</a></li>
               <li><a href="#cafeterias" className="hover:text-white transition-colors">Cafeterías Betel</a></li>
               <li><a href="#servicios" className="hover:text-white transition-colors">Servicios & Puntos</a></li>
-              <li><a href="#nosotros" className="hover:text-white transition-colors">Quiénes Somos</a></li>
+              <li><a href="#nosotros" className="hover:text-white transition-colors">Quiénes somos</a></li>
               <li><a href="#sostenibilidad" className="hover:text-white transition-colors">Sostenibilidad</a></li>
               <li><a href="#trabaja" className="hover:text-white transition-colors">Trabaja con nosotros</a></li>
             </ul>
@@ -102,7 +102,7 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
           {/* Sedes Directory */}
           <div className="lg:col-span-6 space-y-3">
             <h4 className="text-white font-bold text-sm tracking-wider uppercase flex items-center justify-between">
-              <span>Nuestras 10 Sedes</span>
+              <span>Nuestras 10 sedes</span>
               <button
                 onClick={onOpenWhatsApp}
                 className="text-xs text-emerald-400 hover:underline capitalize cursor-pointer"

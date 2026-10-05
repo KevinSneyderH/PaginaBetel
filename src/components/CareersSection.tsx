@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
@@ -35,11 +35,11 @@ const benefits = [
   {
     icon: Users,
     title: "Un equipo que crece unido",
-    description: "Personas comprometidas que trabajan por un propÃ³sito comÃºn.",
+    description: "Personas comprometidas que trabajan por un propósito común.",
   },
   {
     icon: MapPin,
-    title: "Orgullo de nuestra regiÃ³n",
+    title: "Orgullo de nuestra región",
     description:
       "Aportamos al desarrollo de Norte de Santander desde cada sede.",
   },
@@ -54,7 +54,7 @@ const benefits = [
 function applicationLink(position: string, email: string) {
   const subject = encodeURIComponent(`Hoja de vida - Vacante de ${position}`);
   const body = encodeURIComponent(
-    `Hola, equipo de SelecciÃ³n Betel:\n\nQuiero postularme a la vacante de ${position}. Adjunto mi hoja de vida para su consideraciÃ³n.\n\nNombre:\nTelÃ©fono:\nCiudad:`,
+    `Hola, equipo de Selección Betel:\n\nQuiero postularme a la vacante de ${position}. Adjunto mi hoja de vida para su consideración.\n\nNombre:\nTeléfono:\nCiudad:`,
   );
 
   return `mailto:${email}?subject=${subject}&body=${body}`;
@@ -95,7 +95,7 @@ export function CareersSection() {
     async function loadVacancies() {
       if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
         setError(
-          "La conexiÃ³n con el servicio de vacantes no estÃ¡ configurada.",
+          "La conexión con el servicio de vacantes no está configurada.",
         );
         setLoading(false);
         return;
@@ -120,14 +120,14 @@ export function CareersSection() {
 
         if (!response.ok) {
           throw new Error(
-            `La consulta respondiÃ³ con el estado ${response.status}.`,
+            `La consulta respondió con el estado ${response.status}.`,
           );
         }
 
         const data: Vacancy[] = await response.json();
         setVacancies(data);
       } catch {
-        setError("No pudimos cargar las vacantes. Intenta de nuevo mÃ¡s tarde.");
+        setError("No pudimos cargar las vacantes. Intenta de nuevo más tarde.");
       } finally {
         setLoading(false);
       }
@@ -171,7 +171,7 @@ export function CareersSection() {
 
             <div className="mt-8 flex items-center gap-2 text-sm font-semibold text-emerald-800">
               <Mail className="h-4 w-4" />
-              EnvÃ­a tu postulaciÃ³n a SelecciÃ³n Betel
+              Envía tu postulación a Selección Betel
             </div>
           </div>
 
@@ -186,7 +186,7 @@ export function CareersSection() {
                     Tu talento suma
                   </p>
                   <h3 className="text-xl font-black text-slate-900">
-                    Â¿QuÃ© nos mueve?
+                    ¿Qué nos mueve?
                   </h3>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function CareersSection() {
           <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                Ãšnete al equipo
+                Únete al equipo
               </p>
               <h3 className="mt-1 text-2xl font-black text-slate-900 sm:text-3xl">
                 Vacantes disponibles
@@ -233,7 +233,7 @@ export function CareersSection() {
               className="rounded-2xl bg-white p-6 text-sm text-slate-600"
               role="status"
             >
-              Cargando vacantesâ€¦
+              Cargando vacantes…
             </p>
           )}
 
@@ -374,7 +374,7 @@ export function CareersSection() {
             );
           })()}
           <p className="mt-4 text-xs text-slate-500">
-            TambiÃ©n puedes enviar tu hoja de vida a{" "}
+            También puedes enviar tu hoja de vida a{" "}
             <a
               className="font-semibold text-emerald-800 underline"
               href={`mailto:${recruitmentEmail}`}

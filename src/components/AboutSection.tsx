@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Building2, Target, Eye, TrendingUp, HeartHandshake, Award, ShieldCheck, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { assetPath } from '../utils/assetPath';
@@ -111,11 +111,11 @@ export function AboutSection() {
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-100 text-center">
                 <div className="p-3 rounded-2xl bg-lime-50/70 border border-lime-200">
                   <div className="text-2xl font-black text-lime-700">34+</div>
-                  <div className="text-[11px] font-semibold text-slate-600">AÃ±os de Servicio</div>
+                  <div className="text-[11px] font-semibold text-slate-600">Años de servicio</div>
                 </div>
                 <div className="p-3 rounded-2xl bg-orange-50/70 border border-orange-200">
                   <div className="text-2xl font-black text-orange-600">10</div>
-                  <div className="text-[11px] font-semibold text-slate-600">Sedes en la RegiÃ³n</div>
+                  <div className="text-[11px] font-semibold text-slate-600">Sedes en la región</div>
                 </div>
                 <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
                   <div className="text-2xl font-black text-amber-600">100%</div>
@@ -136,9 +136,9 @@ export function AboutSection() {
                   <div className="text-white">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-orange-400 mb-1">
                       <Sparkles className="w-3.5 h-3.5" />
-                      Equipo Humano Capacitado
+                      Equipo humano capacitado
                     </div>
-                    <div className="text-lg font-bold">Generando gratas experiencias de compra todos los dÃ­as</div>
+                    <div className="text-lg font-bold">Generando gratas experiencias de compra todos los días</div>
                   </div>
                 </div>
               </div>
