@@ -19,6 +19,36 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!mobileMenuOpen || !window.matchMedia('(max-width: 1023px)').matches) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const previousStyles = {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+    };
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.position = previousStyles.position;
+      document.body.style.top = previousStyles.top;
+      document.body.style.left = previousStyles.left;
+      document.body.style.right = previousStyles.right;
+      document.body.style.width = previousStyles.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [mobileMenuOpen]);
+
   const navLinks = [
     { name: 'Inicio', href: '#inicio' },
     { name: 'Sedes', href: '#sedes' },
@@ -28,7 +58,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
     { name: 'Nosotros', href: '#nosotros' },
     { name: 'Sostenibilidad', href: '#sostenibilidad' },
     { name: 'Trabaja con nosotros', href: '#trabaja' },
-    { name: 'Login', href: 'https://pagina-empleados-betel.vercel.app/'},
+    { name: 'Portal', href: 'https://pagina-empleados-betel.vercel.app/'},
 
   ];
 
@@ -74,7 +104,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <a href="#top" aria-label="Volver al inicio de la página" className="flex items-center gap-3 group lg:mr-6 xl:mr-8">
+            <a href="#top" aria-label="Volver al inicio de la página" className="flex items-center gap-3 group lg:mr-4 xl:mr-6">
               <img
                 src={assetPath('/logo.png')}
                 alt="Supermercados Betel"
@@ -83,12 +113,12 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
             </a>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+            <nav className="hidden lg:flex items-center gap-3 xl:gap-5">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-sm font-bold text-slate-200 hover:text-lime-400 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-500 hover:after:w-full after:transition-all"
+                  className="whitespace-nowrap text-xs font-bold text-slate-200 hover:text-lime-400 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-500 hover:after:w-full after:transition-all xl:text-sm"
                 >
                   {link.name}
                 </a>
@@ -96,10 +126,10 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
             </nav>
 
             {/* CTA Buttons in Betel Orange & Lime */}
-            <div className="hidden sm:flex items-center gap-3 shrink-0 lg:ml-8">
+            <div className="hidden sm:flex items-center gap-3 shrink-0 lg:ml-4 xl:ml-6">
               <button
                 onClick={() => onOpenWhatsApp()}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer xl:px-5"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Pedir Domicilio</span>
@@ -128,7 +158,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-800 bg-slate-900 shadow-xl px-4 pt-4 pb-6 animate-in slide-in-from-top duration-200">
+          <div className="lg:hidden max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t border-slate-800 bg-slate-900 px-4 pb-6 pt-4 shadow-xl animate-in slide-in-from-top duration-200">
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <a
