@@ -257,8 +257,6 @@ export function CareersSection() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {vacancies.map((vacancy) => {
                 const title = vacancy.titulo || vacancy.cargo;
-                const applicationEmail =
-                  vacancy.correo_postulacion || recruitmentEmail;
 
                 return (
                   <article
