@@ -28,7 +28,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
     { name: 'Nosotros', href: '#nosotros' },
     { name: 'Sostenibilidad', href: '#sostenibilidad' },
     { name: 'Trabaja con nosotros', href: '#trabaja' },
-    { name: 'Login', href: 'http://172.20.1.77:5173/#/vacantes' },
+    { name: 'Login', href: 'https://pagina-empleados-betel.vercel.app/'},
 
   ];
 
