@@ -138,7 +138,7 @@ export function AboutSection() {
                       <Sparkles className="w-3.5 h-3.5" />
                       Equipo humano capacitado
                     </div>
-                    <div className="text-lg font-bold">Generando gratas experiencias de compra todos los días</div>
+                    <div className="text-lg font-bold">Buenas experiencias</div>
                   </div>
                 </div>
               </div>
