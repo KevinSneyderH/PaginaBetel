@@ -73,7 +73,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
             </span>
             <span>
-              <strong className="text-lime-300">¡34 años contigo!</strong> Domicilios y servicio nocturno en sedes seleccionadas
+              <strong className="text-lime-300">¡{COMPANY_DATA.years} años contigo!</strong> Domicilios y servicio nocturno en sedes seleccionadas
             </span>
           </div>
           <div className="hidden sm:flex items-center gap-4 text-xs">

@@ -1,5 +1,6 @@
 import { MapPin, ShoppingBag, Clock, Sparkles, Coffee, ShieldCheck, Sun } from 'lucide-react';
 import { assetPath } from '../utils/assetPath';
+import { COMPANY_DATA } from '../data/companyData';
 
 interface HeroProps {
   onOpenWhatsApp: () => void;
@@ -22,7 +23,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
             {/* Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-300/80 text-lime-900 text-xs sm:text-sm font-bold mb-6 shadow-sm">
               <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
-              <span>34 años al servicio de Norte de Santander</span>
+              <span>{COMPANY_DATA.years} años al servicio de Norte de Santander</span>
             </div>
 
             {/* Main Headline */}
@@ -118,7 +119,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
               {/* Floating Stat Badge 1 */}
               <div className="absolute -top-4 -left-4 sm:-left-6 bg-white rounded-2xl shadow-xl p-3.5 border border-slate-100 flex items-center gap-3 animate-bounce [animation-duration:4s]">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-lime-500 to-emerald-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-lime-500/30">
-                  34
+                  {COMPANY_DATA.years}
                 </div>
                 <div>
                   <div className="text-xs font-bold text-slate-900">Años de historia</div>

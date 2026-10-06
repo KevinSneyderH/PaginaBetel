@@ -79,7 +79,7 @@ export function AboutSection() {
                       ¡Quiénes somos!
                     </h3>
                     <div className="space-y-3 text-slate-600 text-base leading-relaxed">
-                      <p>Somos una empresa Nortesantandereana, de origen familiar, creada hace 34 años con el propósito de servir y prestar la mejor atención a nuestros clientes, basados en la excelencia, respeto y el valor de cada persona.</p>
+                      <p>Somos una empresa Nortesantandereana, de origen familiar, fundada en 1992 con el propósito de servir y prestar la mejor atención a nuestros clientes, basados en la excelencia, respeto y el valor de cada persona.</p>
                       <p>Estamos dedicados a la distribución de productos de la canasta familiar y comunicación celular.</p>
                       <p>Entregamos a nuestros clientes servicios con altos criterios de calidad, garantizando los mejores precios.</p>
                     </div>
@@ -110,7 +110,7 @@ export function AboutSection() {
               {/* Stats Bar */}
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-100 text-center">
                 <div className="p-3 rounded-2xl bg-lime-50/70 border border-lime-200">
-                  <div className="text-2xl font-black text-lime-700">34+</div>
+                  <div className="text-2xl font-black text-lime-700">{COMPANY_DATA.years}+</div>
                   <div className="text-[11px] font-semibold text-slate-600">Años de servicio</div>
                 </div>
                 <div className="p-3 rounded-2xl bg-orange-50/70 border border-orange-200">

@@ -51,7 +51,7 @@ export default function App() {
       {/* Services, Benefits & Water Delivery */}
       <ServicesSection onOpenWhatsApp={() => handleOpenWhatsApp()} />
 
-      {/* About Us (34 Years, Mission, Vision & Values) */}
+      {/* About Us (Years of Service, Mission, Vision & Values) */}
       <AboutSection />
 
       {/* Social & Environmental Responsibility (Solar Energy & Circular Economy) */}

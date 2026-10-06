@@ -29,7 +29,7 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
               />
             </div>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Empresa Nortesantandereana con 34 años de trayectoria, dedicada a la distribución de productos de la canasta familiar y telefonía con los más altos estándares de calidad y los mejores precios de la región.
+              Empresa Nortesantandereana sirviendo desde 1992, dedicada a la distribución de productos de la canasta familiar y telefonía con los más altos estándares de calidad y los mejores precios de la región.
             </p>
             <div className="pt-2 flex items-center gap-3">
               {/* Facebook */}

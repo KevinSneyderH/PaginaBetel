@@ -3,8 +3,8 @@ import { assetPath } from '../utils/assetPath';
 export const COMPANY_DATA = {
   name: 'Supermercados Betel',
   shortName: 'Betel',
-  tagline: '34 años al servicio de Norte de Santander',
-  years: 34,
+  tagline: `${new Date().getFullYear() - 1992} años al servicio de Norte de Santander`,
+  years: new Date().getFullYear() - 1992,
   generalPhone: '3154937743',
   pqrsPhone: '3176797058',
   pqrsMessage: 'Hola, quisiera colocar una PQRS, ¿podrían ayudarme?',
