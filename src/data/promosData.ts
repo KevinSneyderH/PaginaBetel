@@ -1,4 +1,3 @@
-import { assetPath } from '../utils/assetPath';
 
 export interface PromoDay {
   id: string;
@@ -7,7 +6,6 @@ export interface PromoDay {
   title: string;
   description: string;
   badge: string;
-  banner: string;
   highlights: string[];
 }
 
@@ -19,7 +17,6 @@ export const PROMOS_DATA: PromoDay[] = [
     title: 'Lunes de Aseo',
     description: 'Comienza tu semana ahorrando al máximo en los productos esenciales de la canasta familiar.',
     badge: 'Descuentos Especiales',
-    banner: assetPath('/images/promo-lunes.png'),
     highlights: ['Frutas y verduras frescas del campo', 'Granos y abarrotes', 'Ahorro directo en caja']
   },
   {
@@ -29,7 +26,6 @@ export const PROMOS_DATA: PromoDay[] = [
     title: 'Martes de Pollo',
     description: 'La huerta llega directamente a tu mesa con la mejor selección agrícola de nuestra región.',
     badge: 'Cosecha Fresca',
-    banner: assetPath('/images/promo-martes.png'),
     highlights: ['Hortalizas y verduras seleccionadas', 'Frutas tropicales y de temporada', 'Calidad garantizada 100%']
   },
   {
@@ -39,7 +35,6 @@ export const PROMOS_DATA: PromoDay[] = [
     title: 'Miércoles de Fruver',
     description: 'Mitad de semana con promociones imperdibles en marcas líderes para el hogar.',
     badge: 'Ofertas Familiares',
-    banner: assetPath('/images/promo-miercoles.png'),
     highlights: ['Lácteos, quesos y derivados', 'Panadería y pasabocas', 'Bebidas e hidratación']
   },
   {
@@ -49,7 +44,6 @@ export const PROMOS_DATA: PromoDay[] = [
     title: 'Jueves de Carnes Rojas',
     description: 'Cortes premium de res, cerdo, pollo y pescados con la máxima higiene y frescura certificada.',
     badge: 'Carnicería Selecta',
-    banner: assetPath('/images/promo-jueves.png'),
     highlights: ['Cortes especiales de res y cerdo', 'Pollo fresco y embutidos', 'Pescados y mariscos']
   },
   {
@@ -59,7 +53,6 @@ export const PROMOS_DATA: PromoDay[] = [
     title: 'Viernes de Cerdo & Pescado',
     description: 'Todo listo para el fin de semana con ofertas increíbles en pasabocas, licores, aseo y despensa.',
     badge: 'Fin de Semana Betel',
-    banner: assetPath('/images/promo-viernes.png'),
     highlights: ['Snacks, bebidas y confitería', 'Línea completa de aseo para el hogar', 'Puntos dobles Betel']
   }
 ];

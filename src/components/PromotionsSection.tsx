@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag, Sparkles, CheckCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import { PROMOS_DATA, type PromoDay } from '../data/promosData';
+import { fetchVisualAssets, type VisualAsset } from '../utils/visualContentApi';
 
 interface PromotionsSectionProps {
   onOpenWhatsApp: () => void;
@@ -9,6 +10,7 @@ interface PromotionsSectionProps {
 export function PromotionsSection({ onOpenWhatsApp }: PromotionsSectionProps) {
   // Determine current day of week to auto-select
   const [selectedDayId, setSelectedDayId] = useState<string>('lunes');
+  const [weeklyImages, setWeeklyImages] = useState<VisualAsset[]>([]);
 
   useEffect(() => {
     const day = new Date().getDay();
@@ -26,6 +28,16 @@ export function PromotionsSection({ onOpenWhatsApp }: PromotionsSectionProps) {
 
   const activePromo: PromoDay =
     PROMOS_DATA.find((p) => p.id === selectedDayId) || PROMOS_DATA[0];
+  const activePromoIndex = PROMOS_DATA.findIndex((promo) => promo.id === selectedDayId);
+  const activePromoImage = weeklyImages[activePromoIndex];
+
+  useEffect(() => {
+    let mounted = true;
+    void fetchVisualAssets('PROMOCION_SEMANA')
+      .then((images) => { if (mounted) setWeeklyImages(images); })
+      .catch(() => { if (mounted) setWeeklyImages([]); });
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <section id="promociones" className="py-20 bg-white relative overflow-hidden">
@@ -121,11 +133,17 @@ export function PromotionsSection({ onOpenWhatsApp }: PromotionsSectionProps) {
             {/* Promo Flyer Banner */}
             <div className="lg:col-span-6 flex justify-center">
               <div className="relative max-w-sm sm:max-w-md w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/60 group">
-                <img
-                  src={`${activePromo.banner}?v=${new Date().toISOString().slice(0, 10)}`}
-                  alt={`Promoción ${activePromo.dayName} Supermercados Betel`}
-                  className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-500"
-                />
+                {activePromoImage ? (
+  <img
+    src={activePromoImage.imageUrl}
+    alt={activePromoImage.titulo || ("Promoción " + activePromo.dayName + " Supermercados Betel")}
+    className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-500"
+  />
+) : (
+  <div className="flex aspect-[4/5] items-center justify-center bg-slate-800 px-6 text-center text-sm text-slate-300" role="status">
+    La imagen de esta promoción aún no está disponible.
+  </div>
+)}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none"></div>
                 <div className="absolute bottom-3 right-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[11px] font-black px-3 py-1 rounded-lg backdrop-blur-sm shadow-md">
                   {activePromo.badge}

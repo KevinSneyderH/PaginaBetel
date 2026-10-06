@@ -1,36 +1,61 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { assetPath } from '../utils/assetPath';
-
-const SLIDES = [
-  { src: assetPath('/images/slider/16.png'), alt: 'Supermercados Betel - Promoción 16' },
-  { src: assetPath('/images/slider/24.png'), alt: 'Supermercados Betel - Servicio 24 Horas' },
-  { src: assetPath('/images/slider/Banner-de-domicilias.png'), alt: 'Supermercados Betel - Domicilios' },
-  { src: assetPath('/images/slider/banner-gana-puntos.png'), alt: 'Supermercados Betel - Gana Puntos' },
-  { src: assetPath('/images/slider/BANNER-MEDIOS.png'), alt: 'Supermercados Betel - Medios de Pago' },
-  { src: assetPath('/images/slider/botellon-baner.png'), alt: 'Supermercados Betel - Botellón Agua La Huerta' },
-  { src: assetPath('/images/slider/cafeteria.png'), alt: 'Supermercados Betel - Cafetería' },
-  { src: assetPath('/images/slider/Cafeterias.png'), alt: 'Supermercados Betel - Cafeterías Betel' },
-];
+import { useState, useEffect, useCallback } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { fetchVisualAssets, type VisualAsset } from "../utils/visualContentApi";
 
 const AUTOPLAY_INTERVAL = 5000;
 
 export function BannerSlider() {
-  // Track includes a clone at each end for seamless looping.
+  const [slides, setSlides] = useState<VisualAsset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [trackIndex, setTrackIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const slidesWithClones = [SLIDES[SLIDES.length - 1], ...SLIDES, SLIDES[0]];
-  const current = trackIndex === 0
-    ? SLIDES.length - 1
-    : trackIndex === SLIDES.length + 1
-      ? 0
-      : trackIndex - 1;
+  const [isDocumentVisible, setIsDocumentVisible] = useState(() => document.visibilityState === "visible");
+
+  useEffect(() => {
+    let mounted = true;
+    void fetchVisualAssets("SLIDE")
+      .then((data) => { if (mounted) setSlides(data); })
+      .catch(() => { if (mounted) setLoadError(true); })
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    setTrackIndex(slides.length > 1 ? 1 : 0);
+  }, [slides.length]);
+  useEffect(() => {
+    const actualizarVisibilidad = () => {
+      const visible = document.visibilityState === "visible";
+      setIsDocumentVisible(visible);
+
+      if (visible && slides.length > 1) {
+        setTransitionEnabled(false);
+        setTrackIndex((indice) => ((indice - 1) % slides.length + slides.length) % slides.length + 1);
+      }
+    };
+
+    document.addEventListener("visibilitychange", actualizarVisibilidad);
+    return () => document.removeEventListener("visibilitychange", actualizarVisibilidad);
+  }, [slides.length]);
+
+
+  const slidesWithClones = slides.length > 1
+    ? [slides[slides.length - 1], ...slides, slides[0]]
+    : slides;
+  const current = slides.length > 1
+    ? trackIndex === 0
+      ? slides.length - 1
+      : trackIndex === slides.length + 1
+        ? 0
+        : trackIndex - 1
+    : 0;
 
   const goTo = useCallback((index: number) => {
     setTransitionEnabled(true);
-    setTrackIndex(((index + SLIDES.length) % SLIDES.length) + 1);
-  }, []);
+    setTrackIndex(((index + slides.length) % slides.length) + 1);
+  }, [slides.length]);
 
   const next = useCallback(() => {
     setTransitionEnabled(true);
@@ -41,26 +66,32 @@ export function BannerSlider() {
     setTrackIndex((index) => index - 1);
   }, []);
 
-  const handleTrackTransitionEnd = () => {
-    if (trackIndex === 0 || trackIndex === SLIDES.length + 1) {
+  function handleTrackTransitionEnd() {
+    if (trackIndex === 0 || trackIndex === slides.length + 1) {
       setTransitionEnabled(false);
-      setTrackIndex(trackIndex === 0 ? SLIDES.length : 1);
+      setTrackIndex(trackIndex === 0 ? slides.length : 1);
     }
-  };
+  }
 
   useEffect(() => {
-    if (!transitionEnabled) {
-      const frame = requestAnimationFrame(() => setTransitionEnabled(true));
-      return () => cancelAnimationFrame(frame);
-    }
+    if (transitionEnabled) return;
+    const frame = requestAnimationFrame(() => setTransitionEnabled(true));
+    return () => cancelAnimationFrame(frame);
   }, [transitionEnabled]);
 
-  // Autoplay
   useEffect(() => {
-    if (isPaused) return;
-    const timer = setInterval(next, AUTOPLAY_INTERVAL);
-    return () => clearInterval(timer);
-  }, [next, isPaused]);
+    if (isPaused || !isDocumentVisible || slides.length < 2) return;
+    const timer = window.setInterval(next, AUTOPLAY_INTERVAL);
+    return () => window.clearInterval(timer);
+  }, [next, isPaused, isDocumentVisible, slides.length]);
+
+  if (loading) {
+    return <section className="flex aspect-[3/1] w-full items-center justify-center bg-slate-900 text-sm text-white/70" role="status">Cargando imágenes...</section>;
+  }
+  if (loadError) {
+    return <section className="flex aspect-[3/1] w-full items-center justify-center bg-slate-900 text-sm text-white/70" role="status">Las imágenes destacadas no están disponibles.</section>;
+  }
+  if (slides.length === 0) return null;
 
   return (
     <section
@@ -68,71 +99,45 @@ export function BannerSlider() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Slides Container */}
-      <div className="relative w-full aspect-[3/1] overflow-hidden bg-slate-900">
-        <div
-          className={`flex h-full ${transitionEnabled ? 'transition-transform duration-700 ease-in-out' : ''}`}
-          style={{
-            width: `${slidesWithClones.length * 100}%`,
-            transform: `translateX(-${(trackIndex * 100) / slidesWithClones.length}%)`,
-          }}
-          onTransitionEnd={handleTrackTransitionEnd}
-        >
-        {slidesWithClones.map((slide, index) => (
-          <img
-            key={`${slide.src}-${index}`}
-            src={slide.src}
-            alt={slide.alt}
-            className="h-full flex-none bg-slate-900 object-contain"
-            style={{ width: `${100 / slidesWithClones.length}%` }}
-            loading={index === 1 ? 'eager' : 'lazy'}
-            draggable={false}
-          />
-        ))}
+      <div className="relative aspect-[3/1] w-full overflow-hidden bg-slate-900">
+        {slides.length === 1 ? (
+          <img src={slides[0].imageUrl} alt={slides[0].titulo} className="size-full object-contain" />
+        ) : (
+          <div
+            className={"flex h-full " + (transitionEnabled ? "transition-transform duration-700 ease-in-out" : "")}
+            style={{
+              width: (slidesWithClones.length * 100) + "%",
+              transform: "translateX(-" + ((trackIndex * 100) / slidesWithClones.length) + "%)",
+            }}
+            onTransitionEnd={handleTrackTransitionEnd}
+          >
+            {slidesWithClones.map((slide, index) => (
+              <img
+                key={slide.id_contenido + "-" + index}
+                src={slide.imageUrl}
+                alt={slide.titulo}
+                className="h-full flex-none bg-slate-900 object-contain"
+                style={{ width: (100 / slidesWithClones.length) + "%" }}
+                loading={index === 1 ? "eager" : "lazy"}
+                draggable={false}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {slides.length > 1 && <>
+        <button type="button" onClick={prev} className="absolute left-2 top-1/2 z-20 flex h-10 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/15 text-white transition hover:bg-black/35 sm:left-4 sm:h-12 sm:w-10" aria-label="Anterior"><ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" /></button>
+        <button type="button" onClick={next} className="absolute right-2 top-1/2 z-20 flex h-10 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/15 text-white transition hover:bg-black/35 sm:right-4 sm:h-12 sm:w-10" aria-label="Siguiente"><ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" /></button>
+        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 sm:bottom-5">
+          {slides.map((slide, index) => (
+            <button key={slide.id_contenido} type="button" onClick={() => goTo(index)} className={"rounded-full transition-all " + (index === current ? "h-2.5 w-8 bg-orange-500 shadow-md shadow-orange-500/40" : "size-2.5 bg-white/50 hover:bg-white/80")} aria-label={"Ir a slide " + (index + 1)} aria-current={index === current ? "true" : undefined} />
+          ))}
         </div>
-      </div>
-
-      {/* Arrow: Previous */}
-      <button
-        onClick={prev}
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-10 sm:w-10 sm:h-12 rounded-full bg-black/15 hover:bg-black/35 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
-        aria-label="Anterior"
-      >
-        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-      </button>
-
-      {/* Arrow: Next */}
-      <button
-        onClick={next}
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-10 sm:w-10 sm:h-12 rounded-full bg-black/15 hover:bg-black/35 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
-        aria-label="Siguiente"
-      >
-        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-      </button>
-
-      {/* Dot Indicators */}
-      <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-        {SLIDES.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goTo(index)}
-            className={`rounded-full transition-all cursor-pointer ${
-              index === current
-                ? 'w-8 h-2.5 bg-orange-500 shadow-md shadow-orange-500/40'
-                : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/80'
-            }`}
-            aria-label={`Ir a slide ${index + 1}`}
-          />
-        ))}
-      </div>
-
-      {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-black/20">
-        <div
-          className="h-full bg-gradient-to-r from-lime-500 to-orange-500 transition-all duration-300"
-          style={{ width: `${((current + 1) / SLIDES.length) * 100}%` }}
-        />
-      </div>
+        <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-black/20">
+          <div className="h-full bg-gradient-to-r from-lime-500 to-orange-500 transition-all duration-300" style={{ width: (((current + 1) / slides.length) * 100) + "%" }} />
+        </div>
+      </>}
     </section>
   );
 }
