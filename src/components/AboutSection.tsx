@@ -1,10 +1,71 @@
-import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Building2, Target, Eye, TrendingUp, HeartHandshake, Award, ShieldCheck, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { assetPath } from '../utils/assetPath';
 
+type InformacionEmpresa = {
+  id_informacion: number;
+  tipo: string;
+  titulo: string;
+  contenido: string;
+};
+
+const ICONOS_VALORES = ['TrendingUp', 'HeartHandshake', 'Award', 'ShieldCheck', 'Users', 'CheckCircle2'];
 export function AboutSection() {
   const [activeTab, setActiveTab] = useState<'quienes' | 'mision' | 'vision'>('quienes');
+  const [informacionEmpresa, setInformacionEmpresa] = useState<InformacionEmpresa[] | null>(null);
+
+  useEffect(() => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    if (!supabaseUrl || !supabaseKey) return;
+
+    const controller = new AbortController();
+    const url = new URL(supabaseUrl + '/rest/v1/informacion_empresa');
+    url.searchParams.set('select', 'id_informacion,tipo,titulo,contenido');
+    url.searchParams.set('activo', 'eq.true');
+    url.searchParams.set('order', 'id_informacion.asc');
+
+    fetch(url, {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: 'Bearer ' + supabaseKey,
+      },
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error('No fue posible cargar la información empresarial.');
+        return response.json() as Promise<InformacionEmpresa[]>;
+      })
+      .then(setInformacionEmpresa)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        console.error('Error al cargar información empresarial:', error);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const quienesSomos = informacionEmpresa?.find((item) => item.tipo === 'QUIENES_SOMOS');
+  const quienesContenido = quienesSomos?.contenido ?? [
+    'Somos una empresa Nortesantandereana, de origen familiar, fundada en 1992 con el propósito de servir y prestar la mejor atención a nuestros clientes, basados en la excelencia, respeto y el valor de cada persona.',
+    'Estamos dedicados a la distribución de productos de la canasta familiar y comunicación celular.',
+    'Entregamos a nuestros clientes servicios con altos criterios de calidad, garantizando los mejores precios.',
+  ].join('\n\n');
+  const mision = informacionEmpresa?.find((item) => item.tipo === 'MISION');
+  const vision = informacionEmpresa?.find((item) => item.tipo === 'VISION');
+  const valoresApi = informacionEmpresa?.filter((item) => item.tipo === 'VALORES') ?? [];
+  const valoresCorporativos = valoresApi.length
+    ? valoresApi.map((item, index) => ({
+        id: item.id_informacion,
+        title: item.titulo,
+        desc: item.contenido,
+        icon: ICONOS_VALORES[index % ICONOS_VALORES.length],
+      }))
+    : COMPANY_DATA.values.map((item, index) => ({
+        ...item,
+        id: 'fallback-' + index,
+      }));
 
   const valueIcons: Record<string, React.ReactNode> = {
     TrendingUp: <TrendingUp className="w-5 h-5 text-orange-500" />,
@@ -45,7 +106,7 @@ export function AboutSection() {
                   }`}
                 >
                   <Building2 className="w-4 h-4" />
-                  <span>Quiénes somos</span>
+                  <span>¿Quiénes somos?</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('mision')}
@@ -76,12 +137,12 @@ export function AboutSection() {
                   <div className="animate-in fade-in duration-300">
                     <h3 className="text-2xl font-black text-slate-900 mb-3 flex items-center gap-2">
                       <Building2 className="w-6 h-6 text-lime-600" />
-                      ¡Quiénes somos!
+                      ¿Quiénes Somos?
                     </h3>
                     <div className="space-y-3 text-slate-600 text-base leading-relaxed">
-                      <p>Somos una empresa Nortesantandereana, de origen familiar, fundada en 1992 con el propósito de servir y prestar la mejor atención a nuestros clientes, basados en la excelencia, respeto y el valor de cada persona.</p>
-                      <p>Estamos dedicados a la distribución de productos de la canasta familiar y comunicación celular.</p>
-                      <p>Entregamos a nuestros clientes servicios con altos criterios de calidad, garantizando los mejores precios.</p>
+                      {quienesContenido.split(/\n\s*\n/).map((parrafo, index) => (
+                        <p key={index}>{parrafo}</p>
+                      ))}
                     </div>
                   </div>
                 ) : activeTab === 'mision' ? (
@@ -91,7 +152,7 @@ export function AboutSection() {
                       Misión Institucional
                     </h3>
                     <p className="text-slate-600 text-base leading-relaxed">
-                      {COMPANY_DATA.mission}
+                      {mision?.contenido ?? COMPANY_DATA.mission}
                     </p>
                   </div>
                 ) : (
@@ -101,7 +162,7 @@ export function AboutSection() {
                       Visión Hacia el Futuro
                     </h3>
                     <p className="text-slate-600 text-base leading-relaxed">
-                      {COMPANY_DATA.vision}
+                      {vision?.contenido ?? COMPANY_DATA.vision}
                     </p>
                   </div>
                 )}
@@ -153,9 +214,9 @@ export function AboutSection() {
             Nuestros Valores Corporativos
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {COMPANY_DATA.values.map((val, idx) => (
+            {valoresCorporativos.map((val) => (
               <div
-                key={idx}
+                key={val.id}
                 className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
@@ -174,3 +235,6 @@ export function AboutSection() {
     </section>
   );
 }
+
+
+
