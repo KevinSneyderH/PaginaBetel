@@ -108,7 +108,7 @@ export const COMPANY_DATA = {
       { name: 'Prados del Este', hours: '6:00 AM – 7:00 PM', phone: '3154937743' },
       { name: 'La Floresta', hours: '7:00 AM – 8:00 PM', phone: '3165217810' },
       { name: 'Boconó', hours: 'Lun a Sáb: 7:00 AM – 7:00 PM | Dom: 8:00 AM – 3:00 PM', phone: '3168139076' },
-      { name: 'Villa Mall', hours: '7:00 AM – 8:00 PM', phone: '3154937743' },
+      { name: 'Villa Mall', hours: '7:00 AM – 8:00 PM', phone: '3175006614' },
       { name: 'Chapinero', hours: '6:00 AM – 7:00 PM', phone: '3157712511' }
     ]
   }

@@ -76,7 +76,7 @@ export const SEDES_DATA: Sede[] = [
     name: 'Villa Mall',
     city: 'Villa del Rosario',
     address: 'Vía Autopista Internacional, junto a la parroquia Divino Niño Jesús',
-    phone: '3154937743',
+    phone: '3175006614',
     hours: 'Abierto las 24 horas',
     nightService: undefined,
     hasCafeteria: true,
