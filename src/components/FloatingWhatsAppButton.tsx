@@ -6,7 +6,7 @@ interface FloatingWhatsAppButtonProps {
 
 export function FloatingWhatsAppButton({ onClick }: FloatingWhatsAppButtonProps) {
   return (
-    <div className="fixed bottom-18 right-6 z-40 flex items-center group sm:bottom-6">
+    <div className="fixed bottom-23 right-6 z-40 flex items-center group sm:bottom-6">
       {/* Tooltip on hover */}
       <div className="hidden sm:block mr-3 px-3 py-1.5 rounded-xl bg-slate-900/90 backdrop-blur-md text-white text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
         ¡Pide a domicilio o chatea con tu sede!
