@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageCircle, X, Search, Send, MapPin, Sparkles, ClipboardList } from 'lucide-react';
+import { MessageCircle, X, Search, Send, MapPin, Sparkles } from 'lucide-react';
 import { SEDES_DATA, type Sede } from '../data/sedesData';
 import { COMPANY_DATA } from '../data/companyData';
 
@@ -78,26 +78,6 @@ export function WhatsAppModal({ isOpen, onClose, initialSede }: WhatsAppModalPro
               Chatear
             </button>
           </div>
-
-          <a
-            href={`https://api.whatsapp.com/send/?phone=57${COMPANY_DATA.pqrsPhone}&text=${encodeURIComponent(COMPANY_DATA.pqrsMessage)}&type=phone_number&app_absent=0`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
-            className="flex items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 transition-colors hover:bg-orange-100"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-100 text-orange-700">
-                <ClipboardList className="h-4 w-4" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-slate-800">PQRS · línea exclusiva</div>
-                <div className="text-xs text-slate-600">317 679 7058</div>
-              </div>
-            </div>
-            <span className="shrink-0 rounded-xl bg-orange-500 px-3 py-2 text-xs font-bold text-white">Escribir</span>
-          </a>
-
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider pt-2">
             O selecciona tu sede más cercana:
           </div>

@@ -37,9 +37,10 @@ export async function fetchVisualAssets(tipo: VisualAssetType): Promise<VisualAs
   }
 
   const assets = await response.json() as Omit<VisualAsset, "imageUrl">[];
+  const storageUrl = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/";
+
   return assets.map((asset) => ({
     ...asset,
-    imageUrl: SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/" +
-      asset.imagen_path.split("/").map(encodeURIComponent).join("/"),
+    imageUrl: storageUrl + asset.imagen_path.split("/").map(encodeURIComponent).join("/"),
   }));
 }

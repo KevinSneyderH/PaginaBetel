@@ -12,6 +12,7 @@ import { CareersSection } from './components/CareersSection';
 import { Footer } from './components/Footer';
 import { FloatingWhatsAppButton } from './components/FloatingWhatsAppButton';
 import { WhatsAppModal } from './components/WhatsAppModal';
+import { AnnouncementModal } from './components/AnnouncementModal';
 import type { Sede } from './data/sedesData';
 
 export default function App() {
@@ -32,6 +33,9 @@ export default function App() {
     <div id="top" className="min-h-screen bg-[#fffdf8] text-slate-900 font-sans selection:bg-emerald-600 selection:text-white">
       {/* Sticky Smart Navigation */}
       <Navbar onOpenWhatsApp={() => handleOpenWhatsApp()} />
+
+      {/* Announcement shown when the page is entered */}
+      <AnnouncementModal />
 
       {/* Banner Slider */}
       <BannerSlider />

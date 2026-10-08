@@ -1,22 +1,62 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchVisualAssets, type VisualAsset } from "../utils/visualContentApi";
 
 const AUTOPLAY_INTERVAL = 5000;
 
+interface SizedVisualAsset extends VisualAsset {
+  width: number;
+  height: number;
+}
+
+function loadImageDimensions(slide: VisualAsset): Promise<SizedVisualAsset | null> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve({ ...slide, width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => resolve(null);
+    image.src = slide.imageUrl;
+  });
+}
+
+function hasDesktopDimensions(slide: SizedVisualAsset) {
+  const desktopRatio = 1920 / 640;
+  return slide.width >= 1920 && slide.height >= 640 && Math.abs(slide.width / slide.height - desktopRatio) < 0.05;
+}
+
+function hasMobileDimensions(slide: SizedVisualAsset) {
+  const mobileRatio = 1080 / 1350;
+  return slide.width <= 1080 && slide.height <= 1350 && Math.abs(slide.width / slide.height - mobileRatio) < 0.05;
+}
+
 export function BannerSlider() {
-  const [slides, setSlides] = useState<VisualAsset[]>([]);
+  const [allSlides, setAllSlides] = useState<SizedVisualAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [trackIndex, setTrackIndex] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(() => document.visibilityState === "visible");
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 639px)").matches);
+  const slides = useMemo(
+    () => allSlides.filter(isMobile ? hasMobileDimensions : hasDesktopDimensions),
+    [allSlides, isMobile],
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const updateViewport = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     void fetchVisualAssets("SLIDE")
-      .then((data) => { if (mounted) setSlides(data); })
+      .then(async (data) => {
+        const slidesWithDimensions = await Promise.all(data.map(loadImageDimensions));
+        if (mounted) setAllSlides(slidesWithDimensions.filter((slide): slide is SizedVisualAsset => slide !== null));
+      })
       .catch(() => { if (mounted) setLoadError(true); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
@@ -86,10 +126,10 @@ export function BannerSlider() {
   }, [next, isPaused, isDocumentVisible, slides.length]);
 
   if (loading) {
-    return <section className="flex aspect-[3/1] w-full items-center justify-center bg-slate-900 text-sm text-white/70" role="status">Cargando imágenes...</section>;
+    return <section className="flex aspect-[4/5] w-full items-center justify-center bg-slate-900 text-sm text-white/70 sm:aspect-[3/1]" role="status">Cargando imágenes...</section>;
   }
   if (loadError) {
-    return <section className="flex aspect-[3/1] w-full items-center justify-center bg-slate-900 text-sm text-white/70" role="status">Las imágenes destacadas no están disponibles.</section>;
+    return <section className="flex aspect-[4/5] w-full items-center justify-center bg-slate-900 text-sm text-white/70 sm:aspect-[3/1]" role="status">Las imágenes destacadas no están disponibles.</section>;
   }
   if (slides.length === 0) return null;
 
@@ -99,9 +139,9 @@ export function BannerSlider() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="relative aspect-[3/1] w-full overflow-hidden bg-slate-900">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-900 sm:aspect-[3/1]">
         {slides.length === 1 ? (
-          <img src={slides[0].imageUrl} alt={slides[0].titulo} className="size-full object-contain" />
+          <img src={slides[0].imageUrl} alt={slides[0].titulo} className="size-full object-cover" />
         ) : (
           <div
             className={"flex h-full " + (transitionEnabled ? "transition-transform duration-700 ease-in-out" : "")}
@@ -116,7 +156,7 @@ export function BannerSlider() {
                 key={slide.id_contenido + "-" + index}
                 src={slide.imageUrl}
                 alt={slide.titulo}
-                className="h-full flex-none bg-slate-900 object-contain"
+                className="h-full flex-none bg-slate-900 object-cover"
                 style={{ width: (100 / slidesWithClones.length) + "%" }}
                 loading={index === 1 ? "eager" : "lazy"}
                 draggable={false}

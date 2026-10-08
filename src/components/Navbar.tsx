@@ -82,12 +82,12 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
             </span>
             <span className="opacity-40">|</span>
             <a
-              href={`https://api.whatsapp.com/send/?phone=57${COMPANY_DATA.pqrsPhone}&text=${encodeURIComponent(COMPANY_DATA.pqrsMessage)}&type=phone_number&app_absent=0`}
+              href={`https://api.whatsapp.com/send/?phone=57${COMPANY_DATA.generalPhone}&text=${encodeURIComponent(COMPANY_DATA.whatsappMessage)}&type=phone_number&app_absent=0`}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline flex items-center gap-1 text-orange-300 cursor-pointer font-bold"
             >
-              <Phone className="w-3.5 h-3.5" /> PQRS: 317 679 7058
+              <Phone className="w-3.5 h-3.5" /> Atención: 317 679 7058
             </a>
           </div>
         </div>
@@ -102,13 +102,13 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+          <div className="relative flex items-center justify-between">
             {/* Logo */}
-            <a href="#top" aria-label="Volver al inicio de la página" className="flex items-center gap-3 group lg:mr-4 xl:mr-6">
+            <a href="#top" aria-label="Volver al inicio de la página" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 group lg:static lg:translate-x-0 lg:mr-4 xl:mr-6">
               <img
                 src={assetPath('/logo.png')}
                 alt="Supermercados Betel"
-                className="h-12 sm:h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+                className="h-15 sm:h-20 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
               />
             </a>
 
@@ -172,14 +172,14 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
               ))}
               <div className="pt-3 border-t border-slate-800 mt-2 flex flex-col gap-2">
                 <a
-                  href={`https://api.whatsapp.com/send/?phone=57${COMPANY_DATA.pqrsPhone}&text=${encodeURIComponent(COMPANY_DATA.pqrsMessage)}&type=phone_number&app_absent=0`}
+                  href={`https://api.whatsapp.com/send/?phone=57${COMPANY_DATA.generalPhone}&text=${encodeURIComponent(COMPANY_DATA.whatsappMessage)}&type=phone_number&app_absent=0`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full flex items-center justify-center gap-2 bg-emerald-800 text-white py-3 rounded-xl font-bold"
                 >
                   <Phone className="w-4 h-4" />
-                  <span>PQRS por WhatsApp · 317 679 7058</span>
+                  <span>Atención general por WhatsApp · 317 679 7058</span>
                 </a>
                 <button
                   onClick={() => {

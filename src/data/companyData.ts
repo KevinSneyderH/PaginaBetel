@@ -5,9 +5,7 @@ export const COMPANY_DATA = {
   shortName: 'Betel',
   tagline: `${new Date().getFullYear() - 1992} años al servicio de Norte de Santander`,
   years: new Date().getFullYear() - 1992,
-  generalPhone: '3154937743',
-  pqrsPhone: '3176797058',
-  pqrsMessage: 'Hola, quisiera colocar una PQRS, ¿podrían ayudarme?',
+  generalPhone: '3176797058',
   whatsappMessage: '¡Hola Supermercados Betel! Me gustaría recibir información sobre promociones y domicilios.',
   socials: {
     facebook: 'https://web.facebook.com/supermercadobetel/?locale=es_LA',

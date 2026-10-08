@@ -34,11 +34,6 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
               </span>
             </h1>
 
-            {/* Subheading */}
-            <p className="text-base sm:text-lg text-slate-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Somos tu cadena de supermercados de confianza en Cúcuta y Norte de Santander. Conoce nuestras <strong>10 sedes</strong> estratégicas, servicio nocturno 24 horas por ventanilla, cafeterías con panadería fresca y domicilios rápidos a tu casa.
-            </p>
-
             {/* Primary Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
               <a
