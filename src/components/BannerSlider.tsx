@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchVisualAssets, type VisualAsset } from "../utils/visualContentApi";
 
 const AUTOPLAY_INTERVAL = 5000;
+/** Minimum px the finger must travel to count as a swipe */
+const SWIPE_THRESHOLD = 40;
 
 interface SizedVisualAsset extends VisualAsset {
   width: number;
@@ -16,6 +18,12 @@ function loadImageDimensions(slide: VisualAsset): Promise<SizedVisualAsset | nul
     image.onerror = () => resolve(null);
     image.src = slide.imageUrl;
   });
+}
+
+/** Preload an image into the browser cache so it's ready when displayed */
+function preloadImage(url: string) {
+  const img = new Image();
+  img.src = url;
 }
 
 function hasDesktopDimensions(slide: SizedVisualAsset) {
@@ -37,10 +45,27 @@ export function BannerSlider() {
   const [isPaused, setIsPaused] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(() => document.visibilityState === "visible");
   const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 639px)").matches);
+
+  // Guard: prevents navigation while a CSS transition is in progress
+  const isAnimatingRef = useRef(false);
+
+  // Touch/swipe state
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+  const touchDeltaRef = useRef(0);
+  const [dragOffset, setDragOffset] = useState(0); // px offset while dragging
+  const isDraggingRef = useRef(false);
+  const trackContainerRef = useRef<HTMLDivElement>(null);
+
   const slides = useMemo(
     () => allSlides.filter(isMobile ? hasMobileDimensions : hasDesktopDimensions),
     [allSlides, isMobile],
   );
+
+  // Preload all slide images once they are known so rapid navigation never shows blanks
+  useEffect(() => {
+    slides.forEach((slide) => preloadImage(slide.imageUrl));
+  }, [slides]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 639px)");
@@ -65,12 +90,14 @@ export function BannerSlider() {
   useEffect(() => {
     setTrackIndex(slides.length > 1 ? 1 : 0);
   }, [slides.length]);
+
   useEffect(() => {
     const actualizarVisibilidad = () => {
       const visible = document.visibilityState === "visible";
       setIsDocumentVisible(visible);
 
       if (visible && slides.length > 1) {
+        isAnimatingRef.current = false;
         setTransitionEnabled(false);
         setTrackIndex((indice) => ((indice - 1) % slides.length + slides.length) % slides.length + 1);
       }
@@ -93,15 +120,22 @@ export function BannerSlider() {
     : 0;
 
   const goTo = useCallback((index: number) => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
     setTransitionEnabled(true);
     setTrackIndex(((index + slides.length) % slides.length) + 1);
   }, [slides.length]);
 
   const next = useCallback(() => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
     setTransitionEnabled(true);
     setTrackIndex((index) => index + 1);
   }, []);
+
   const prev = useCallback(() => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
     setTransitionEnabled(true);
     setTrackIndex((index) => index - 1);
   }, []);
@@ -111,6 +145,8 @@ export function BannerSlider() {
       setTransitionEnabled(false);
       setTrackIndex(trackIndex === 0 ? slides.length : 1);
     }
+    // Unlock navigation once the transition finishes
+    isAnimatingRef.current = false;
   }
 
   useEffect(() => {
@@ -124,6 +160,68 @@ export function BannerSlider() {
     const timer = window.setInterval(next, AUTOPLAY_INTERVAL);
     return () => window.clearInterval(timer);
   }, [next, isPaused, isDocumentVisible, slides.length]);
+
+  // ── Touch / swipe handlers ──────────────────────────────────────────
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (slides.length < 2) return;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+    touchDeltaRef.current = 0;
+    isDraggingRef.current = false;
+    setIsPaused(true);
+  }, [slides.length]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (slides.length < 2) return;
+    const deltaX = e.touches[0].clientX - touchStartXRef.current;
+    const deltaY = e.touches[0].clientY - touchStartYRef.current;
+
+    // Only start horizontal drag if the gesture is predominantly horizontal
+    if (!isDraggingRef.current) {
+      if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+        isDraggingRef.current = true;
+      } else {
+        return; // let vertical scroll happen
+      }
+    }
+
+    // Prevent vertical scroll while dragging the slider
+    e.preventDefault();
+
+    touchDeltaRef.current = deltaX;
+    setDragOffset(deltaX);
+  }, [slides.length]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (slides.length < 2) return;
+
+    const delta = touchDeltaRef.current;
+    setDragOffset(0);
+    isDraggingRef.current = false;
+
+    if (Math.abs(delta) >= SWIPE_THRESHOLD) {
+      if (delta < 0) {
+        next();
+      } else {
+        prev();
+      }
+    }
+
+    // Unpause autoplay after a brief delay
+    setTimeout(() => setIsPaused(false), 300);
+  }, [slides.length, next, prev]);
+
+  // Compute the translate value for the track
+  const getTrackTranslate = () => {
+    const basePercent = (trackIndex * 100) / slidesWithClones.length;
+    if (dragOffset !== 0 && trackContainerRef.current) {
+      const containerWidth = trackContainerRef.current.offsetWidth;
+      // Convert px drag offset to a percentage of the full track width
+      const dragPercent = (dragOffset / containerWidth) * (100 / slidesWithClones.length);
+      return basePercent - dragPercent;
+    }
+    return basePercent;
+  };
 
   if (loading) {
     return <section className="flex aspect-[4/5] w-full items-center justify-center bg-slate-900 text-sm text-white/70 sm:aspect-[3/1]" role="status">Cargando imágenes...</section>;
@@ -139,15 +237,26 @@ export function BannerSlider() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-900 sm:aspect-[3/1]">
+      <div
+        ref={trackContainerRef}
+        className="relative aspect-[4/5] w-full overflow-hidden bg-slate-900 sm:aspect-[3/1]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {slides.length === 1 ? (
           <img src={slides[0].imageUrl} alt={slides[0].titulo} className="size-full object-cover" />
         ) : (
           <div
-            className={"flex h-full " + (transitionEnabled ? "transition-transform duration-700 ease-in-out" : "")}
+            className={
+              "flex h-full " +
+              (transitionEnabled && dragOffset === 0
+                ? "transition-transform duration-700 ease-in-out"
+                : "")
+            }
             style={{
               width: (slidesWithClones.length * 100) + "%",
-              transform: "translateX(-" + ((trackIndex * 100) / slidesWithClones.length) + "%)",
+              transform: "translateX(-" + getTrackTranslate() + "%)",
             }}
             onTransitionEnd={handleTrackTransitionEnd}
           >
@@ -158,7 +267,7 @@ export function BannerSlider() {
                 alt={slide.titulo}
                 className="h-full flex-none bg-slate-900 object-cover"
                 style={{ width: (100 / slidesWithClones.length) + "%" }}
-                loading={index === 1 ? "eager" : "lazy"}
+                loading="eager"
                 draggable={false}
               />
             ))}
