@@ -179,7 +179,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
                   className="w-full flex items-center justify-center gap-2 bg-emerald-800 text-white py-3 rounded-xl font-bold"
                 >
                   <Phone className="w-4 h-4" />
-                  <span>Atención general por WhatsApp · 317 679 7058</span>
+                  <span>Atención general · 317 679 7058</span>
                 </a>
                 <button
                   onClick={() => {
