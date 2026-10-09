@@ -2,7 +2,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const BUCKET = "contenido-visual";
 
-export type VisualAssetType = "SLIDE" | "PROMOCION_SEMANA";
+export type VisualAssetType = "SLIDE" | "PROMOCION_SEMANA" | "ANUNCIO";
 export interface VisualAsset {
   id_contenido: number;
   tipo: VisualAssetType;
