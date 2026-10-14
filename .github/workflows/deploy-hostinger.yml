@@ -1,0 +1,32 @@
+name: Construir sitio para Hostinger
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Instalar dependencias
+        run: bun install --frozen-lockfile
+
+      - name: Construir sitio
+        run: bun run build
+
+      - name: Publicar archivos construidos
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: hostinger-deploy
+          publish_dir: ./dist
