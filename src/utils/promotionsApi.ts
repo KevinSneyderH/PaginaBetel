@@ -1,7 +1,9 @@
+import type { PromoDay } from "../data/promosData";
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export interface Promotion {
+interface PromotionRow {
   id: string;
   orden: number;
   day_name: string;
@@ -12,7 +14,7 @@ export interface Promotion {
   highlights: string[];
 }
 
-export async function fetchPromotions(): Promise<Promotion[]> {
+export async function fetchPromotions(): Promise<PromoDay[]> {
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     throw new Error("La conexión con las promociones no está configurada.");
   }
@@ -34,7 +36,7 @@ export async function fetchPromotions(): Promise<Promotion[]> {
     throw new Error("La consulta de promociones respondió con el estado " + response.status + ".");
   }
 
-  const rows = await response.json() as Promotion[];
+  const rows = await response.json() as PromotionRow[];
   return rows.map((row) => ({
     id: row.id,
     orden: row.orden,
