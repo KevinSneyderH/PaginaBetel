@@ -1,6 +1,7 @@
 
 export interface PromoDay {
   id: string;
+  orden: number;
   dayName: string;
   shortDay: string;
   title: string;
@@ -12,6 +13,7 @@ export interface PromoDay {
 export const PROMOS_DATA: PromoDay[] = [
   {
     id: 'lunes',
+    orden: 0,
     dayName: 'Lunes',
     shortDay: 'LUN',
     title: 'Lunes de Aseo',
@@ -21,6 +23,7 @@ export const PROMOS_DATA: PromoDay[] = [
   },
   {
     id: 'martes',
+    orden: 1,
     dayName: 'Martes',
     shortDay: 'MAR',
     title: 'Martes de Pollo',
@@ -30,6 +33,7 @@ export const PROMOS_DATA: PromoDay[] = [
   },
   {
     id: 'miercoles',
+    orden: 2,
     dayName: 'Miércoles',
     shortDay: 'MIÉ',
     title: 'Miércoles de Fruver',
@@ -39,6 +43,7 @@ export const PROMOS_DATA: PromoDay[] = [
   },
   {
     id: 'jueves',
+    orden: 3,
     dayName: 'Jueves',
     shortDay: 'JUE',
     title: 'Jueves de Carnes Rojas',
@@ -48,6 +53,7 @@ export const PROMOS_DATA: PromoDay[] = [
   },
   {
     id: 'viernes',
+    orden: 4,
     dayName: 'Viernes',
     shortDay: 'VIE',
     title: 'Viernes de Cerdo & Pescado',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag, Sparkles, CheckCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import { PROMOS_DATA, type PromoDay } from '../data/promosData';
+import { fetchPromotions } from '../utils/promotionsApi';
 import { fetchVisualAssets, type VisualAsset } from '../utils/visualContentApi';
 
 interface PromotionsSectionProps {
@@ -11,6 +12,7 @@ export function PromotionsSection({ onOpenWhatsApp }: PromotionsSectionProps) {
   // Determine current day of week to auto-select
   const [selectedDayId, setSelectedDayId] = useState<string>('lunes');
   const [weeklyImages, setWeeklyImages] = useState<VisualAsset[]>([]);
+  const [promos, setPromos] = useState<PromoDay[]>(PROMOS_DATA);
 
   useEffect(() => {
     const day = new Date().getDay();
@@ -27,9 +29,16 @@ export function PromotionsSection({ onOpenWhatsApp }: PromotionsSectionProps) {
   }, []);
 
   const activePromo: PromoDay =
-    PROMOS_DATA.find((p) => p.id === selectedDayId) || PROMOS_DATA[0];
-  const activePromoIndex = PROMOS_DATA.findIndex((promo) => promo.id === selectedDayId);
-  const activePromoImage = weeklyImages[activePromoIndex];
+    promos.find((p) => p.id === selectedDayId) || promos[0] || PROMOS_DATA[0];
+  const activePromoImage = weeklyImages.find((image) => image.orden === activePromo.orden);
+
+  useEffect(() => {
+    let mounted = true;
+    void fetchPromotions()
+      .then((rows) => { if (mounted && rows.length) setPromos(rows); })
+      .catch(() => { if (mounted) setPromos(PROMOS_DATA); });
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
