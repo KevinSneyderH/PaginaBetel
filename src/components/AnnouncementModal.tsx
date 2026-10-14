@@ -16,7 +16,7 @@ function loadImage(asset: VisualAsset): Promise<{ asset: VisualAsset; width: num
   });
 }
 
-export function AnnouncementModal() {
+export function AnnouncementModal({ visible }: { visible: boolean }) {
   const [isOpen, setIsOpen] = useState(true);
   const [announcement, setAnnouncement] = useState<ResponsiveAnnouncement>({ desktop: null, mobile: null });
   const [cargando, setCargando] = useState(true);
@@ -53,7 +53,7 @@ export function AnnouncementModal() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!visible || !isOpen || cargando) return null;
 
   const desktopImage = announcement.desktop ?? announcement.mobile;
   const mobileImage = announcement.mobile ?? announcement.desktop;

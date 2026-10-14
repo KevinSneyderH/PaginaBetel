@@ -74,3 +74,15 @@
     color: #12351d;
   }
 }
+
+@media (min-width: 1024px) {
+  html {
+    scroll-padding-top: 1.5rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  html {
+    scroll-behavior: auto;
+  }
+}

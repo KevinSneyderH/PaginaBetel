@@ -1,13 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Search, MapPin, Phone, MessageSquare, Clock, Coffee, Moon, Navigation } from 'lucide-react';
-import { SEDES_DATA, type Sede } from '../data/sedesData';
+import { SEDES_DATA } from '../data/sedesData';
 import { assetPath } from '../utils/assetPath';
 
-interface SedesSectionProps {
-  onSelectSedeForWhatsApp: (sede: Sede) => void;
-}
-
-export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
+export function SedesSection() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState<string>('Todas');
   const [filter24Hours, setFilter24Hours] = useState(false);
@@ -245,13 +241,15 @@ export function SedesSection({ onSelectSedeForWhatsApp }: SedesSectionProps) {
 
                   {/* Action Buttons */}
                   <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
-                    <button
-                      onClick={() => onSelectSedeForWhatsApp(sede)}
+                    <a
+                      href={"https://wa.me/57" + sede.phone + "?text=" + encodeURIComponent("Hola, estoy interesado(a) en la sede " + sede.name + ".")}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                     >
                       <MessageSquare className="w-4 h-4" />
                       <span>WhatsApp</span>
-                    </button>
+                    </a>
 
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(sede.mapQuery)}`}

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Building2, Target, Eye, TrendingUp, HeartHandshake, Award, ShieldCheck, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { assetPath } from '../utils/assetPath';
@@ -96,10 +96,10 @@ export function AboutSection() {
             
             {/* Left Column: Interactive Switcher */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="flex flex-wrap gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit">
+              <div className="grid w-full grid-cols-3 gap-1 p-1.5 bg-slate-100 rounded-2xl sm:flex sm:w-fit sm:flex-wrap sm:gap-2">
                 <button
                   onClick={() => setActiveTab('quienes')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                  className={`inline-flex w-full min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 rounded-xl text-center text-[10px] leading-tight font-bold transition-all cursor-pointer sm:w-auto sm:flex-row sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm ${
                     activeTab === 'quienes'
                       ? 'bg-gradient-to-r from-lime-600 to-emerald-600 text-white shadow-md shadow-lime-600/30'
                       : 'text-slate-600 hover:text-slate-900'
@@ -110,7 +110,7 @@ export function AboutSection() {
                 </button>
                 <button
                   onClick={() => setActiveTab('mision')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                  className={`inline-flex w-full min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 rounded-xl text-center text-[10px] leading-tight font-bold transition-all cursor-pointer sm:w-auto sm:flex-row sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm ${
                     activeTab === 'mision'
                       ? 'bg-gradient-to-r from-lime-600 to-emerald-600 text-white shadow-md shadow-lime-600/30'
                       : 'text-slate-600 hover:text-slate-900'
@@ -121,7 +121,7 @@ export function AboutSection() {
                 </button>
                 <button
                   onClick={() => setActiveTab('vision')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                  className={`inline-flex w-full min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 rounded-xl text-center text-[10px] leading-tight font-bold transition-all cursor-pointer sm:w-auto sm:flex-row sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm ${
                     activeTab === 'vision'
                       ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/30'
                       : 'text-slate-600 hover:text-slate-900'

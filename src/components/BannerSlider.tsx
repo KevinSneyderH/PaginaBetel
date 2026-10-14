@@ -36,7 +36,7 @@ function hasMobileDimensions(slide: SizedVisualAsset) {
   return slide.width <= 1080 && slide.height <= 1350 && Math.abs(slide.width / slide.height - mobileRatio) < 0.05;
 }
 
-export function BannerSlider() {
+export function BannerSlider({ onInitialLoad }: { onInitialLoad?: () => void }) {
   const [allSlides, setAllSlides] = useState<SizedVisualAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -83,7 +83,7 @@ export function BannerSlider() {
         if (mounted) setAllSlides(slidesWithDimensions.filter((slide): slide is SizedVisualAsset => slide !== null));
       })
       .catch(() => { if (mounted) setLoadError(true); })
-      .finally(() => { if (mounted) setLoading(false); });
+      .finally(() => { if (mounted) { setLoading(false); onInitialLoad?.(); } });
     return () => { mounted = false; };
   }, []);
 
@@ -185,8 +185,8 @@ export function BannerSlider() {
       }
     }
 
-    // Prevent vertical scroll while dragging the slider
-    e.preventDefault();
+    // Keep native vertical scrolling available while handling horizontal swipes
+
 
     touchDeltaRef.current = deltaX;
     setDragOffset(deltaX);
@@ -224,7 +224,7 @@ export function BannerSlider() {
   };
 
   if (loading) {
-    return <section className="flex aspect-[4/5] w-full items-center justify-center bg-slate-900 text-sm text-white/70 sm:aspect-[3/1]" role="status">Cargando imágenes...</section>;
+    return <section className="aspect-[4/5] w-full animate-pulse bg-slate-800 sm:aspect-[3/1]" role="status" aria-label="Cargando banners"><div className="h-full w-full bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800" /></section>;
   }
   if (loadError) {
     return <section className="flex aspect-[4/5] w-full items-center justify-center bg-slate-900 text-sm text-white/70 sm:aspect-[3/1]" role="status">Las imágenes destacadas no están disponibles.</section>;
@@ -239,7 +239,7 @@ export function BannerSlider() {
     >
       <div
         ref={trackContainerRef}
-        className="relative aspect-[4/5] w-full overflow-hidden bg-slate-900 sm:aspect-[3/1]"
+        className="relative aspect-[4/5] w-full touch-pan-y overflow-hidden bg-slate-900 sm:aspect-[3/1]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

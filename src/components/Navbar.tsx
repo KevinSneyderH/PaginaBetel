@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type MouseEvent } from 'react';
 import { Menu, X, Phone, ShoppingBag, Clock } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { assetPath } from '../utils/assetPath';
@@ -49,6 +49,40 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
     };
   }, [mobileMenuOpen]);
 
+  const handleMobileAnchorNavigation = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (!href.startsWith('#') || !window.matchMedia('(max-width: 1023px)').matches) return;
+
+    const target = document.querySelector<HTMLElement>(href);
+    if (!target) return;
+
+    event.preventDefault();
+    setMobileMenuOpen(false);
+
+    // Wait for the mobile drawer to unlock the page before measuring and scrolling.
+    window.setTimeout(() => {
+      const startY = window.scrollY;
+      const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 64;
+      const sectionPaddingTop = Number.parseFloat(window.getComputedStyle(target).paddingTop) || 0;
+      const targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY + sectionPaddingTop - headerHeight - 4);
+      const distance = targetY - startY;
+      const duration = Math.min(1300, Math.max(500, Math.abs(distance) * 0.3));
+      const startTime = performance.now();
+
+      window.history.replaceState(null, '', href);
+
+      const animateScroll = (now: number) => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const easedProgress = progress < 0.5
+          ? 4 * progress ** 3
+          : 1 - ((-2 * progress + 2) ** 3) / 2;
+
+        window.scrollTo(0, startY + distance * easedProgress);
+        if (progress < 1) window.requestAnimationFrame(animateScroll);
+      };
+
+      window.requestAnimationFrame(animateScroll);
+    }, 0);
+  };
   const navLinks = [
     { name: 'Inicio', href: '#inicio' },
     { name: 'Sedes', href: '#sedes' },
@@ -102,13 +136,13 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative flex items-center justify-between">
+          <div className="relative flex min-h-16 items-center justify-between">
             {/* Logo */}
-            <a href="#top" aria-label="Volver al inicio de la página" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 group lg:static lg:translate-x-0 lg:mr-4 xl:mr-6">
+            <a href="#top" onClick={(event) => handleMobileAnchorNavigation(event, "#top")} aria-label="Volver al inicio de la página" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 group lg:static lg:translate-x-0 lg:mr-4 xl:mr-6">
               <img
                 src={assetPath('/logo.png')}
                 alt="Supermercados Betel"
-                className="h-15 sm:h-20 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+                className="h-16 sm:h-20 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
               />
             </a>
 
@@ -164,7 +198,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
                 <a
                   key={link.name}
                   href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(event) => { handleMobileAnchorNavigation(event, link.href); setMobileMenuOpen(false); }}
                   className="px-3 py-2.5 rounded-lg text-base font-bold text-slate-200 hover:bg-slate-800 hover:text-lime-400 transition-colors"
                 >
                   {link.name}

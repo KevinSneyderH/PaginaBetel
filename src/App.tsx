@@ -35,7 +35,7 @@ export default function App() {
       <Navbar onOpenWhatsApp={() => handleOpenWhatsApp()} />
 
       {/* Announcement shown when the page is entered */}
-      <AnnouncementModal />
+      <AnnouncementModal visible />
 
       {/* Banner Slider */}
       <BannerSlider />
@@ -44,7 +44,7 @@ export default function App() {
       <Hero onOpenWhatsApp={() => handleOpenWhatsApp()} />
 
       {/* Interactive Sedes Explorer (10 Sedes, Filter, Search, Badges) */}
-      <SedesSection onSelectSedeForWhatsApp={(sede) => handleOpenWhatsApp(sede)} />
+      <SedesSection />
 
       {/* Daily Promotions Section */}
       <PromotionsSection onOpenWhatsApp={() => handleOpenWhatsApp()} />

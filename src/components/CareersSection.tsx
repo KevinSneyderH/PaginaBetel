@@ -69,7 +69,7 @@ function formatoFecha(valor: string | null) {
   }).format(new Date(`${valor}T00:00:00Z`));
 }
 
-export function CareersSection() {
+export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void } = {}) {
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -98,6 +98,7 @@ export function CareersSection() {
           "La conexión con el servicio de vacantes no está configurada.",
         );
         setLoading(false);
+        onInitialLoad?.();
         return;
       }
 
@@ -130,11 +131,12 @@ export function CareersSection() {
         setError("No pudimos cargar las vacantes. Intenta de nuevo más tarde.");
       } finally {
         setLoading(false);
+        onInitialLoad?.();
       }
     }
 
     void loadVacancies();
-  }, []);
+  }, [onInitialLoad]);
 
   return (
     <section
@@ -229,12 +231,17 @@ export function CareersSection() {
           </div>
 
           {loading && (
-            <p
-              className="rounded-2xl bg-white p-6 text-sm text-slate-600"
-              role="status"
-            >
-              Cargando vacantes…
-            </p>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Cargando vacantes">
+              {Array.from({ length: 3 }, (_, index) => (
+                <div key={index} aria-hidden="true" className="animate-pulse rounded-2xl border border-lime-100 bg-white p-5">
+                  <div className="h-5 w-3/4 rounded bg-slate-200" />
+                  <div className="mt-4 h-4 w-1/2 rounded bg-slate-100" />
+                  <div className="mt-6 h-4 w-full rounded bg-slate-100" />
+                  <div className="mt-2 h-4 w-5/6 rounded bg-slate-100" />
+                  <div className="mt-6 h-10 w-32 rounded-xl bg-lime-100" />
+                </div>
+              ))}
+            </div>
           )}
 
           {!loading && error && (
