@@ -92,7 +92,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
     { name: 'Nosotros', href: '#nosotros' },
     { name: 'Sostenibilidad', href: '#sostenibilidad' },
     { name: 'Trabaja con nosotros', href: '#trabaja' },
-    { name: 'Portal', href: 'https://pagina-empleados-betel.vercel.app/'},
+    { name: 'Portal', href: 'https://empleados.supermercadobetel.co/'},
 
   ];
 
