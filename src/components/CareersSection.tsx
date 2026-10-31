@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
+  Banknote,
   BriefcaseBusiness,
+  Clock,
   HeartHandshake,
+  Image as ImageIcon,
   Mail,
   MapPin,
+  MessageCircle,
   Users,
   X,
+  ZoomIn,
 } from "lucide-react";
 import { useCambiosEnVivo } from "../utils/realtime";
 
@@ -14,6 +19,8 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const recruitmentEmail = "seleccionrh.betel@gmail.com";
+const recruitmentWhatsapp = "3175177648";
+const recruitmentWhatsappDisplay = "317 517 7648";
 
 type Vacancy = {
   id_vacante: number;
@@ -30,6 +37,7 @@ type Vacancy = {
   fecha_publicacion: string;
   fecha_cierre: string | null;
   correo_postulacion: string | null;
+  imagen_url: string | null;
 };
 
 const benefits = [
@@ -53,12 +61,19 @@ const benefits = [
 ];
 
 function applicationLink(position: string, email: string) {
-  const subject = encodeURIComponent(`Hoja de vida - Vacante de ${position}`);
+  const subject = encodeURIComponent(`Hoja de vida - Convocatoria de ${position}`);
   const body = encodeURIComponent(
-    `Hola, equipo de Selección Betel:\n\nQuiero postularme a la vacante de ${position}. Adjunto mi hoja de vida para su consideración.\n\nNombre:\nTeléfono:\nCiudad:`,
+    `Hola, equipo de Selección Betel:\n\nQuiero postularme a la vacante de ${position}. Adjunto mi hoja de vida para su consideración.\n\nNombre completo:\nTeléfono:\nCiudad:\n\n¡Muchas gracias!`,
   );
 
   return `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
+function whatsappLink(position: string) {
+  const message = encodeURIComponent(
+    `¡Hola! Vi la convocatoria para "${position}" en el portal web de Supermercados Betel y deseo postularme con mi hoja de vida.`,
+  );
+  return `https://wa.me/57${recruitmentWhatsapp}?text=${message}`;
 }
 
 function formatoFecha(valor: string | null) {
@@ -75,16 +90,23 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedVacancy, setSelectedVacancy] = useState<Vacancy | null>(null);
+  const [aficheEnGrande, setAficheEnGrande] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const notifiedRef = useRef(false);
 
   useEffect(() => {
-    if (!selectedVacancy) return;
+    if (!selectedVacancy && !aficheEnGrande) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedVacancy(null);
+      if (event.key === "Escape") {
+        if (aficheEnGrande) {
+          setAficheEnGrande(null);
+        } else {
+          setSelectedVacancy(null);
+        }
+      }
     };
     window.addEventListener("keydown", closeOnEscape);
 
@@ -92,7 +114,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [selectedVacancy]);
+  }, [selectedVacancy, aficheEnGrande]);
 
   const loadVacancies = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
@@ -114,7 +136,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
     const url = new URL(`${SUPABASE_URL}/rest/v1/vacantes`);
     url.search = new URLSearchParams({
       select:
-        "id_vacante,titulo,cargo,area,descripcion,funciones,requisitos,ubicacion,modalidad,tipo_contrato,salario,fecha_publicacion,fecha_cierre,correo_postulacion",
+        "id_vacante,titulo,cargo,area,descripcion,funciones,requisitos,ubicacion,modalidad,tipo_contrato,salario,fecha_publicacion,fecha_cierre,correo_postulacion,imagen_url",
       publicada: "eq.true",
       estado: "eq.ABIERTA",
       order: "fecha_publicacion.desc",
@@ -178,7 +200,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-7">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lime-200 bg-white/80 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lime-200 bg-white/80 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800 shadow-xs">
               <BriefcaseBusiness className="h-4 w-4 text-orange-500" />
               Oportunidades Betel
             </div>
@@ -194,9 +216,21 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
               y el trabajo en equipo, queremos conocerte.
             </p>
 
-            <div className="mt-8 flex items-center gap-2 text-sm font-semibold text-emerald-800">
-              <Mail className="h-4 w-4" />
-              Envía tu postulación a Selección Betel
+            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm font-semibold text-emerald-800">
+              <span className="inline-flex items-center gap-2">
+                <Mail className="h-4 w-4 text-emerald-600" />
+                {recruitmentEmail}
+              </span>
+              <span className="text-slate-300">·</span>
+              <a
+                href={`https://wa.me/57${recruitmentWhatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-emerald-800 hover:text-emerald-950 underline underline-offset-4"
+              >
+                <MessageCircle className="h-4 w-4 text-emerald-600" />
+                WhatsApp: {recruitmentWhatsappDisplay}
+              </a>
             </div>
           </div>
 
@@ -238,7 +272,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
         </div>
 
         <div className="mt-16">
-          <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div className="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
                 Únete al equipo
@@ -248,20 +282,24 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
               </h3>
             </div>
             <p className="max-w-lg text-sm leading-relaxed text-slate-600">
-              Selecciona un cargo para preparar tu correo. Recuerda adjuntar tu
-              hoja de vida antes de enviarlo.
+              Explora las convocatorias abiertas, consulta los afiches y postúlate directamente por WhatsApp o correo.
             </p>
           </div>
 
           {loading && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Cargando vacantes">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Cargando vacantes">
               {Array.from({ length: 3 }, (_, index) => (
-                <div key={index} aria-hidden="true" className="animate-pulse rounded-2xl border border-lime-100 bg-white p-5">
-                  <div className="h-5 w-3/4 rounded bg-slate-200" />
-                  <div className="mt-4 h-4 w-1/2 rounded bg-slate-100" />
-                  <div className="mt-6 h-4 w-full rounded bg-slate-100" />
-                  <div className="mt-2 h-4 w-5/6 rounded bg-slate-100" />
-                  <div className="mt-6 h-10 w-32 rounded-xl bg-lime-100" />
+                <div key={index} aria-hidden="true" className="animate-pulse overflow-hidden rounded-3xl border border-lime-100 bg-white shadow-sm">
+                  <div className="h-52 w-full bg-slate-200" />
+                  <div className="p-6">
+                    <div className="h-5 w-3/4 rounded bg-slate-200" />
+                    <div className="mt-4 h-4 w-1/2 rounded bg-slate-100" />
+                    <div className="mt-6 flex gap-2">
+                      <div className="h-7 w-20 rounded-lg bg-slate-100" />
+                      <div className="h-7 w-24 rounded-lg bg-slate-100" />
+                    </div>
+                    <div className="mt-6 h-11 w-full rounded-xl bg-lime-100" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -269,7 +307,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
 
           {!loading && error && (
             <p
-              className="rounded-2xl bg-white p-6 text-sm text-red-700"
+              className="rounded-2xl bg-white p-6 text-sm text-red-700 shadow-sm"
               role="alert"
             >
               {error}
@@ -277,64 +315,146 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
           )}
 
           {!loading && !error && vacancies.length === 0 && (
-            <p className="rounded-2xl bg-white p-6 text-sm text-slate-600">
-              En este momento no tenemos vacantes disponibles. Vuelve a
-              consultar pronto.
-            </p>
+            <div className="rounded-3xl border border-lime-100 bg-white p-10 text-center shadow-sm">
+              <BriefcaseBusiness className="mx-auto size-12 text-slate-300" />
+              <h4 className="mt-3 text-lg font-bold text-slate-800">No hay vacantes activas en este momento</h4>
+              <p className="mt-1 text-sm text-slate-600">
+                Vuelve a consultar pronto o envía tu hoja de vida a {recruitmentEmail}.
+              </p>
+            </div>
           )}
 
           {!loading && !error && vacancies.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {vacancies.map((vacancy) => {
                 const title = vacancy.titulo || vacancy.cargo;
 
                 return (
                   <article
                     key={vacancy.id_vacante}
-                    className="flex flex-col rounded-2xl border border-lime-100 bg-white p-5 text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-lime-200/80 bg-white shadow-md shadow-emerald-950/5 transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/10"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    {/* Header visual: Afiche o Banner ilustrado */}
+                    {vacancy.imagen_url ? (
+                      <div className="relative h-56 w-full overflow-hidden bg-slate-900">
+                        <img
+                          src={vacancy.imagen_url}
+                          alt={`Afiche de ${title}`}
+                          className="h-full w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-black/30"
+                        />
+                        <div className="absolute left-3 top-3 right-3 flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/90 px-3 py-1 text-[11px] font-bold text-white shadow-sm backdrop-blur-md">
+                            <span className="size-2 rounded-full bg-lime-300 animate-pulse" />
+                            Convocatoria abierta
+                          </span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white shadow-sm backdrop-blur-md">
+                            <ImageIcon className="size-3 text-lime-300" />
+                            Afiche
+                          </span>
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-100 drop-shadow-sm">
+                            <BriefcaseBusiness className="size-3.5 text-lime-300" />
+                            {vacancy.area || "Supermercados Betel"}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-900 to-teal-950 p-5 text-white flex flex-col justify-between">
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute -right-6 -top-6 size-32 rounded-full bg-lime-400/20 blur-2xl"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute -left-6 -bottom-6 size-32 rounded-full bg-orange-400/15 blur-2xl"
+                        />
+                        <BriefcaseBusiness
+                          aria-hidden="true"
+                          className="pointer-events-none absolute -right-3 -bottom-4 size-28 text-white/5"
+                        />
+                        <div className="relative flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold text-lime-200 backdrop-blur-md">
+                            <span className="size-2 rounded-full bg-lime-400 animate-pulse" />
+                            Convocatoria abierta
+                          </span>
+                          <span className="font-mono text-xs font-bold uppercase tracking-wider text-lime-300/80">
+                            Betel Empleo
+                          </span>
+                        </div>
+                        <div className="relative">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-100">
+                            <BriefcaseBusiness className="size-3.5 text-lime-300" />
+                            {vacancy.area || "Supermercados Betel"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Contenido de la tarjeta */}
+                    <div className="flex flex-1 flex-col p-5 sm:p-6">
                       <div className="min-w-0">
-                        <h4 className="break-words text-lg font-bold text-slate-900">
+                        <h4 className="text-xl font-black leading-snug tracking-tight text-slate-900 transition-colors group-hover:text-emerald-800 line-clamp-2">
                           {title}
                         </h4>
                         {vacancy.cargo !== title && (
-                          <p className="mt-0.5 text-sm text-slate-500">
+                          <p className="mt-0.5 text-xs font-medium text-slate-500">
                             {vacancy.cargo}
                           </p>
                         )}
                       </div>
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-lime-100 text-emerald-800">
-                        <BriefcaseBusiness className="h-4 w-4" />
-                      </span>
-                    </div>
 
-                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-600">
-                      {vacancy.descripcion}
-                    </p>
+                      {/* Chips de atributos rápidos */}
+                      <div className="mt-3.5 flex flex-wrap gap-2">
+                        {vacancy.ubicacion && (
+                          <span className="inline-flex items-center gap-1.5 rounded-xl border border-orange-100 bg-orange-50/80 px-2.5 py-1 text-xs font-bold text-orange-800">
+                            <MapPin className="size-3.5 text-orange-600" />
+                            {vacancy.ubicacion}
+                          </span>
+                        )}
+                        {vacancy.modalidad && (
+                          <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/60 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                            <Clock className="size-3.5 text-slate-500" />
+                            {vacancy.modalidad}
+                          </span>
+                        )}
+                        {vacancy.salario && (
+                          <span className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                            <Banknote className="size-3.5 text-emerald-600" />
+                            {vacancy.salario}
+                          </span>
+                        )}
+                      </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {vacancy.area && (
-                        <span className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-800">
-                          {vacancy.area}
-                        </span>
-                      )}
-                      {vacancy.ubicacion && (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-800">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {vacancy.ubicacion}
-                        </span>
-                      )}
-                    </div>
+                      <p className="mt-3.5 line-clamp-2 text-sm leading-relaxed text-slate-600">
+                        {vacancy.descripcion}
+                      </p>
 
-                    <div className="mt-auto pt-5">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedVacancy(vacancy)}
-                        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-lime-200 bg-white px-4 text-sm font-bold text-emerald-800 transition hover:border-emerald-700 hover:bg-lime-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
-                      >
-                        Ver detalles <ArrowUpRight className="h-4 w-4" />
-                      </button>
+                      {/* Botones de acción */}
+                      <div className="mt-auto flex flex-col gap-2 pt-5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedVacancy(vacancy)}
+                          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+                        >
+                          Ver vacante {vacancy.imagen_url ? "y afiche" : "completa"}
+                          <ArrowUpRight className="size-4" />
+                        </button>
+                        <a
+                          href={whatsappLink(title)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 text-xs font-bold text-emerald-900 transition hover:border-emerald-300 hover:bg-emerald-100/80 active:scale-[0.98]"
+                        >
+                          <MessageCircle className="size-4 text-emerald-700" />
+                          Postularme por WhatsApp
+                        </a>
+                      </div>
                     </div>
                   </article>
                 );
@@ -342,6 +462,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
             </div>
           )}
 
+          {/* Modal de Detalle de Vacante */}
           {selectedVacancy && (() => {
             const title = selectedVacancy.titulo || selectedVacancy.cargo;
             const applicationEmail = selectedVacancy.correo_postulacion || recruitmentEmail;
@@ -351,65 +472,198 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
               ["Modalidad", selectedVacancy.modalidad],
               ["Tipo de contrato", selectedVacancy.tipo_contrato],
               ["Salario", selectedVacancy.salario],
-              ["Fecha de publicación", formatoFecha(selectedVacancy.fecha_publicacion)],
+              ["Publicada", formatoFecha(selectedVacancy.fecha_publicacion)],
               ["Fecha de cierre", formatoFecha(selectedVacancy.fecha_cierre)],
             ].filter(([, value]) => value);
 
+            const tieneAfiche = Boolean(selectedVacancy.imagen_url);
+
             return (
               <div
-                className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+                className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/65 p-0 backdrop-blur-sm sm:items-center sm:p-5"
                 onMouseDown={(event) => {
                   if (event.target === event.currentTarget) setSelectedVacancy(null);
                 }}
               >
-                <section role="dialog" aria-modal="true" aria-labelledby="vacancy-dialog-title" className="flex max-h-[94dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-3xl">
-                  <header className="relative shrink-0 overflow-hidden bg-emerald-900 px-5 py-6 text-white sm:px-8 sm:py-8">
-                    <div aria-hidden="true" className="absolute -right-10 -top-16 h-48 w-48 rounded-full bg-lime-300/15 blur-2xl" />
+                <section
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="vacancy-dialog-title"
+                  className={`flex max-h-[95dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] ${
+                    tieneAfiche ? "sm:max-w-4xl" : "sm:max-w-2xl"
+                  } sm:rounded-3xl`}
+                >
+                  {/* Encabezado del modal */}
+                  <header className="relative shrink-0 overflow-hidden bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950 px-5 py-5 text-white sm:px-7 sm:py-6">
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-lime-300/15 blur-2xl"
+                    />
                     <div className="relative flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-lime-100"><BriefcaseBusiness className="h-3.5 w-3.5" /> Oportunidad laboral</span>
-                        <h3 id="vacancy-dialog-title" className="mt-3 break-words text-2xl font-black sm:text-3xl">{title}</h3>
-                        {selectedVacancy.cargo !== title && <p className="mt-1 text-sm text-emerald-100">{selectedVacancy.cargo}</p>}
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-lime-200">
+                          <BriefcaseBusiness className="size-3.5" /> Convocatoria Betel
+                        </span>
+                        <h3 id="vacancy-dialog-title" className="mt-2 break-words text-2xl font-black sm:text-3xl">
+                          {title}
+                        </h3>
+                        {selectedVacancy.cargo !== title && (
+                          <p className="mt-1 text-sm text-emerald-100">{selectedVacancy.cargo}</p>
+                        )}
                       </div>
-                      <button type="button" autoFocus onClick={() => setSelectedVacancy(null)} aria-label="Cerrar detalles" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"><X className="h-5 w-5" /></button>
+                      <button
+                        type="button"
+                        autoFocus
+                        onClick={() => setSelectedVacancy(null)}
+                        aria-label="Cerrar detalles"
+                        className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      >
+                        <X className="size-5" />
+                      </button>
                     </div>
                   </header>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-8">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {details.map(([label, value]) => (
-                        <div key={label} className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-                          <p className="mt-1 break-words text-sm font-semibold text-slate-800">{value}</p>
+                  {/* Cuerpo del modal */}
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                    <div className={tieneAfiche ? "md:grid md:grid-cols-12 md:divide-x md:divide-slate-100" : ""}>
+                      {/* Columna izquierda: Afiche oficial */}
+                      {tieneAfiche && selectedVacancy.imagen_url && (
+                        <div className="bg-slate-950 p-4 sm:p-6 md:col-span-5 flex flex-col items-center justify-center text-center">
+                          <div className="group relative w-full overflow-hidden rounded-2xl border border-slate-800 bg-black shadow-lg">
+                            <img
+                              src={selectedVacancy.imagen_url}
+                              alt={`Afiche de ${title}`}
+                              className="mx-auto max-h-[460px] w-auto object-contain cursor-zoom-in transition-transform duration-300 group-hover:scale-[1.02]"
+                              onClick={() => setAficheEnGrande(selectedVacancy.imagen_url)}
+                            />
+                            <div
+                              onClick={() => setAficheEnGrande(selectedVacancy.imagen_url)}
+                              className="absolute inset-0 flex cursor-zoom-in items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                            >
+                              <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-bold text-slate-900 shadow-lg">
+                                <ZoomIn className="size-4" /> Ampliar afiche
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setAficheEnGrande(selectedVacancy.imagen_url)}
+                            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-lime-300 hover:text-lime-200"
+                          >
+                            <ZoomIn className="size-3.5" /> Ver afiche en pantalla completa
+                          </button>
                         </div>
-                      ))}
-                    </div>
-                    <div className="mt-6 space-y-6">
-                      <div><h4 className="text-base font-bold text-slate-900">Descripción</h4><p className="mt-2 whitespace-pre-line break-words text-sm leading-7 text-slate-600">{selectedVacancy.descripcion}</p></div>
-                      {selectedVacancy.funciones && <div><h4 className="text-base font-bold text-slate-900">Funciones</h4><p className="mt-2 whitespace-pre-line break-words text-sm leading-7 text-slate-600">{selectedVacancy.funciones}</p></div>}
-                      {selectedVacancy.requisitos && <div><h4 className="text-base font-bold text-slate-900">Requisitos</h4><p className="mt-2 whitespace-pre-line break-words text-sm leading-7 text-slate-600">{selectedVacancy.requisitos}</p></div>}
+                      )}
+
+                      {/* Columna derecha (o única): Datos de la vacante */}
+                      <div className={`p-5 sm:p-7 ${tieneAfiche ? "md:col-span-7" : ""} space-y-6`}>
+                        {/* Grilla de atributos */}
+                        <div className="grid gap-2.5 sm:grid-cols-2">
+                          {details.map(([label, value]) => (
+                            <div key={label} className="rounded-xl border border-slate-100 bg-slate-50/90 p-3">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+                              <p className="mt-0.5 break-words text-sm font-semibold text-slate-800">{value}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Descripción, Funciones, Requisitos */}
+                        <div className="space-y-5">
+                          <div>
+                            <h4 className="text-sm font-bold uppercase tracking-wide text-emerald-800">Descripción del cargo</h4>
+                            <p className="mt-1.5 whitespace-pre-line break-words text-sm leading-relaxed text-slate-600">
+                              {selectedVacancy.descripcion}
+                            </p>
+                          </div>
+
+                          {selectedVacancy.funciones && (
+                            <div>
+                              <h4 className="text-sm font-bold uppercase tracking-wide text-emerald-800">Funciones principales</h4>
+                              <p className="mt-1.5 whitespace-pre-line break-words text-sm leading-relaxed text-slate-600">
+                                {selectedVacancy.funciones}
+                              </p>
+                            </div>
+                          )}
+
+                          {selectedVacancy.requisitos && (
+                            <div>
+                              <h4 className="text-sm font-bold uppercase tracking-wide text-emerald-800">Requisitos del perfil</h4>
+                              <p className="mt-1.5 whitespace-pre-line break-words text-sm leading-relaxed text-slate-600">
+                                {selectedVacancy.requisitos}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <footer className="shrink-0 border-t border-slate-100 bg-white px-5 py-4 sm:px-8">
+                  {/* Pie del modal: Botones de postulación */}
+                  <footer className="shrink-0 border-t border-slate-100 bg-white p-4 sm:px-7 sm:py-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0 text-xs text-slate-600"><span className="font-semibold text-slate-800">Postulación: </span><a href={`mailto:${applicationEmail}`} className="break-all text-emerald-800 underline underline-offset-2">{applicationEmail}</a></div>
-                      <a href={applicationLink(title, applicationEmail)} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 text-sm font-bold text-white transition hover:bg-emerald-900">Postularme <ArrowUpRight className="h-4 w-4" /></a>
+                      <div className="text-xs text-slate-500">
+                        Canales de recepción de hojas de vida:{" "}
+                        <strong className="text-slate-700">WhatsApp ({recruitmentWhatsappDisplay})</strong> o{" "}
+                        <a href={`mailto:${applicationEmail}`} className="font-semibold text-emerald-800 underline">
+                          {applicationEmail}
+                        </a>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <a
+                          href={whatsappLink(title)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98] sm:flex-initial"
+                        >
+                          <MessageCircle className="size-4" />
+                          Postularme por WhatsApp
+                        </a>
+                        <a
+                          href={applicationLink(title, applicationEmail)}
+                          className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+                        >
+                          <Mail className="size-4 text-slate-500" />
+                          Correo
+                        </a>
+                      </div>
                     </div>
                   </footer>
                 </section>
               </div>
             );
           })()}
-          <p className="mt-4 text-xs text-slate-500">
-            También puedes enviar tu hoja de vida a{" "}
+
+          {/* Lightbox para ver afiche en pantalla completa */}
+          {aficheEnGrande && (
+            <div
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+              onClick={() => setAficheEnGrande(null)}
+            >
+              <button
+                type="button"
+                onClick={() => setAficheEnGrande(null)}
+                aria-label="Cerrar afiche"
+                className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+              >
+                <X className="size-6" />
+              </button>
+              <img
+                src={aficheEnGrande}
+                alt="Afiche oficial de la vacante en tamaño completo"
+                className="max-h-[92vh] max-w-[92vw] rounded-2xl object-contain shadow-2xl"
+              />
+            </div>
+          )}
+
+          <p className="mt-6 text-center text-xs text-slate-500 sm:text-left">
+            También puedes enviar tu hoja de vida directamente a{" "}
             <a
               className="font-semibold text-emerald-800 underline"
               href={`mailto:${recruitmentEmail}`}
             >
               {recruitmentEmail}
-            </a>
-            .
+            </a>{" "}
+            o al WhatsApp {recruitmentWhatsappDisplay}.
           </p>
         </div>
       </div>
