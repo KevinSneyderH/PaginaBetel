@@ -7,103 +7,118 @@
  */
 
 import { useEffect, useRef } from "react";
-import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type RealtimeChannel, type SupabaseClient } from "@supabase/supabase-js";
 
 type ListenerCambio = (tabla: string) => void;
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+// Cliente singleton para Realtime en la web pública (sin persistencia de auth para evitar conflictos)
+let supabaseRealtime: SupabaseClient | null = null;
+if (supabaseUrl && supabaseKey) {
+  supabaseRealtime = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      storageKey: "sb-public-betel-realtime",
+    },
+  });
+}
+
 class RealtimeHubPublico {
-  private client: SupabaseClient | null = null;
-  private clientPromise: Promise<SupabaseClient | null> | null = null;
   private canal: RealtimeChannel | null = null;
-  private canalPromise: Promise<void> | null = null;
   private oyentes = new Set<ListenerCambio>();
   private refCount = 0;
   private temporizadorInactividad: number | null = null;
   private temporizadorDesconexion: number | null = null;
   private desconectadoPorInactividad = false;
+  private detectorVisibilidadIniciado = false;
+  private estadoSuscripcion: "INICIAL" | "CONECTANDO" | "CONECTADO" | "CERRADO" = "INICIAL";
+  private pendienteDesconectar = false;
 
-  private obtenerCliente(): Promise<SupabaseClient | null> {
-    if (this.client) return Promise.resolve(this.client);
-    if (this.clientPromise) return this.clientPromise;
-
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    if (!supabaseUrl || !supabaseKey) return Promise.resolve(null);
-
-    this.clientPromise = import("@supabase/supabase-js").then(({ createClient }) => {
-      this.client = createClient(supabaseUrl, supabaseKey, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          storageKey: "sb-public-betel-realtime",
-        },
-      });
-      return this.client;
-    });
-
-    return this.clientPromise;
-  }
-
-  async conectar() {
+  conectar() {
     this.refCount += 1;
     this.limpiarTemporizadorDesconexion();
+    this.pendienteDesconectar = false;
 
-    if (this.canal) return;
-    if (this.canalPromise) {
-      await this.canalPromise;
+    if (!supabaseRealtime) return;
+    if (this.canal && (this.estadoSuscripcion === "CONECTADO" || this.estadoSuscripcion === "CONECTANDO")) {
       return;
     }
 
-    this.canalPromise = (async () => {
-      const cliente = await this.obtenerCliente();
-      if (!cliente) return;
-      if (this.canal) return;
+    this.iniciarCanal();
+    this.iniciarDetectorVisibilidad();
+  }
 
-      // Se suscribe al canal privado de cambios públicos
-      const nuevoCanal = cliente.channel("publico:cambios", {
-        config: { private: true },
-      });
+  private iniciarCanal() {
+    if (!supabaseRealtime) return;
 
-      nuevoCanal.on("broadcast", { event: "cambio" }, (payload) => {
-        const datos = (payload.payload ?? {}) as { tabla?: string };
-        const tablaAfectada = datos.tabla;
-        if (typeof tablaAfectada === "string") {
-          this.notificar(tablaAfectada);
+    this.estadoSuscripcion = "CONECTANDO";
+
+    // Se suscribe al canal privado de cambios públicos
+    const nuevoCanal = supabaseRealtime.channel("publico:cambios", {
+      config: { private: true },
+    });
+
+    nuevoCanal.on("broadcast", { event: "cambio" }, (payload) => {
+      const datos = (payload.payload ?? {}) as { tabla?: string };
+      const tablaAfectada = datos.tabla;
+      if (typeof tablaAfectada === "string") {
+        this.notificar(tablaAfectada);
+      }
+    });
+
+    nuevoCanal.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        this.estadoSuscripcion = "CONECTADO";
+        if (this.pendienteDesconectar) {
+          this.pendienteDesconectar = false;
+          this.ejecutarDesconexion();
+          return;
         }
-      });
-
-      nuevoCanal.subscribe((status) => {
-        if (status === "SUBSCRIBED" && this.desconectadoPorInactividad) {
+        if (this.desconectadoPorInactividad) {
           this.desconectadoPorInactividad = false;
           // Al reconectar tras inactividad, resincroniza todo por si hubo cambios
           this.notificar("*");
         }
-      });
+      } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+        this.estadoSuscripcion = "CERRADO";
+      }
+    });
 
-      this.canal = nuevoCanal;
-      this.iniciarDetectorVisibilidad();
-    })();
+    this.canal = nuevoCanal;
+  }
 
-    try {
-      await this.canalPromise;
-    } finally {
-      this.canalPromise = null;
-    }
+  private ejecutarDesconexion() {
+    if (!this.canal || !supabaseRealtime) return;
+    const canalAEliminar = this.canal;
+    this.canal = null;
+    this.estadoSuscripcion = "CERRADO";
+    this.limpiarTemporizadorInactividad();
+
+    // supabase.removeChannel realiza la limpieza completa del canal en Realtime sin dejar sockets colgados
+    void supabaseRealtime.removeChannel(canalAEliminar);
   }
 
   desconectar() {
     this.refCount = Math.max(0, this.refCount - 1);
     if (this.refCount === 0) {
       this.limpiarTemporizadorDesconexion();
-      // Periodo de gracia de 1.5s antes de cerrar el WebSocket para evitar desconexiones abruptas
-      // durante montajes rápidos de componentes iniciales o re-renders
+      // Periodo de gracia de 5 segundos antes de cerrar el WebSocket para evitar desconexiones abruptas
+      // durante montajes rápidos de componentes iniciales o re-renders en React
       this.temporizadorDesconexion = window.setTimeout(() => {
-        if (this.refCount === 0 && this.canal) {
-          void this.canal.unsubscribe();
-          this.canal = null;
-          this.limpiarTemporizadorInactividad();
+        if (this.refCount === 0) {
+          // Si el socket aún está en proceso de handshake (CONECTANDO), no lo cerramos abruptamente
+          // para evitar la advertencia de Chromium; marcamos pendiente para cerrar una vez completado.
+          if (this.estadoSuscripcion === "CONECTANDO") {
+            this.pendienteDesconectar = true;
+          } else {
+            this.ejecutarDesconexion();
+          }
         }
-      }, 1500);
+      }, 5000);
     }
   }
 
@@ -116,7 +131,7 @@ class RealtimeHubPublico {
 
   suscribir(oyente: ListenerCambio): () => void {
     this.oyentes.add(oyente);
-    void this.conectar();
+    this.conectar();
 
     return () => {
       this.oyentes.delete(oyente);
@@ -135,7 +150,8 @@ class RealtimeHubPublico {
   }
 
   private iniciarDetectorVisibilidad() {
-    if (typeof document === "undefined") return;
+    if (this.detectorVisibilidadIniciado || typeof document === "undefined") return;
+    this.detectorVisibilidadIniciado = true;
 
     const handleVisibility = () => {
       if (document.hidden) {
@@ -143,14 +159,13 @@ class RealtimeHubPublico {
         this.temporizadorInactividad = window.setTimeout(() => {
           if (document.hidden && this.canal) {
             this.desconectadoPorInactividad = true;
-            void this.canal.unsubscribe();
-            this.canal = null;
+            this.ejecutarDesconexion();
           }
         }, 60_000);
       } else {
         this.limpiarTemporizadorInactividad();
         if (this.desconectadoPorInactividad || (!this.canal && this.refCount > 0)) {
-          void this.conectar();
+          this.conectar();
         }
       }
     };
