@@ -13,7 +13,7 @@ export interface VisualAsset {
   imageUrl: string;
 }
 
-export async function fetchVisualAssets(tipo: VisualAssetType): Promise<VisualAsset[]> {
+export async function fetchVisualAssets(tipo: VisualAssetType, signal?: AbortSignal): Promise<VisualAsset[]> {
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     throw new Error("La conexión con las imágenes no está configurada.");
   }
@@ -27,6 +27,8 @@ export async function fetchVisualAssets(tipo: VisualAssetType): Promise<VisualAs
   }).toString();
 
   const response = await fetch(url, {
+    cache: "no-store",
+    signal,
     headers: {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY,

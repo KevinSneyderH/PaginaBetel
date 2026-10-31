@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tag, Sparkles, CheckCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import { PROMOS_DATA, type PromoDay } from '../data/promosData';
 import { fetchPromotions } from '../utils/promotionsApi';
 import { fetchVisualAssets, type VisualAsset } from '../utils/visualContentApi';
+import { useCambiosEnVivo } from '../utils/realtime';
 
 interface PromotionsSectionProps {
   onOpenWhatsApp: () => void;
@@ -33,17 +34,41 @@ export function PromotionsSection({ onOpenWhatsApp, onInitialLoad }: PromotionsS
     promos.find((p) => p.id === selectedDayId) || promos[0] || PROMOS_DATA[0];
   const activePromoImage = weeklyImages.find((image) => image.orden === activePromo.orden);
 
-  useEffect(() => {
-    let mounted = true;
-    void Promise.allSettled([fetchPromotions(), fetchVisualAssets('PROMOCION_SEMANA')])
-      .then(([promotionsResult, imagesResult]) => {
-        if (!mounted) return;
-        if (promotionsResult.status === 'fulfilled' && promotionsResult.value.length) setPromos(promotionsResult.value);
-        if (imagesResult.status === 'fulfilled') setWeeklyImages(imagesResult.value);
-      })
-      .finally(() => { if (mounted) onInitialLoad?.(); });
-    return () => { mounted = false; };
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const initialLoadReportedRef = useRef(false);
+
+  const cargarPromociones = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const [promotionsResult, imagesResult] = await Promise.allSettled([
+        fetchPromotions(controller.signal),
+        fetchVisualAssets('PROMOCION_SEMANA', controller.signal),
+      ]);
+      if (promotionsResult.status === 'fulfilled' && promotionsResult.value.length) {
+        setPromos(promotionsResult.value);
+      }
+      if (imagesResult.status === 'fulfilled') {
+        setWeeklyImages(imagesResult.value);
+      }
+    } finally {
+      if (!initialLoadReportedRef.current) {
+        initialLoadReportedRef.current = true;
+        onInitialLoad?.();
+      }
+    }
   }, [onInitialLoad]);
+
+  useEffect(() => {
+    void cargarPromociones();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [cargarPromociones]);
+
+  useCambiosEnVivo(['promociones_diarias', 'contenido_visual'], cargarPromociones);
 
   return (
     <section id="promociones" className="py-14 sm:py-20 bg-white relative overflow-hidden">

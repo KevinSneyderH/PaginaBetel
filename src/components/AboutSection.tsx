@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Building2, Target, Eye, TrendingUp, HeartHandshake, Award, ShieldCheck, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { assetPath } from '../utils/assetPath';
+import { useCambiosEnVivo } from '../utils/realtime';
 
 type InformacionEmpresa = {
   id_informacion: number;
@@ -11,40 +12,52 @@ type InformacionEmpresa = {
 };
 
 const ICONOS_VALORES = ['TrendingUp', 'HeartHandshake', 'Award', 'ShieldCheck', 'Users', 'CheckCircle2'];
+
 export function AboutSection() {
   const [activeTab, setActiveTab] = useState<'quienes' | 'mision' | 'vision'>('quienes');
   const [informacionEmpresa, setInformacionEmpresa] = useState<InformacionEmpresa[] | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
+  const cargarInformacion = useCallback(async () => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     if (!supabaseUrl || !supabaseKey) return;
 
+    abortControllerRef.current?.abort();
     const controller = new AbortController();
-    const url = new URL(supabaseUrl + '/rest/v1/informacion_empresa');
-    url.searchParams.set('select', 'id_informacion,tipo,titulo,contenido');
-    url.searchParams.set('activo', 'eq.true');
-    url.searchParams.set('order', 'id_informacion.asc');
+    abortControllerRef.current = controller;
 
-    fetch(url, {
-      headers: {
-        apikey: supabaseKey,
-        Authorization: 'Bearer ' + supabaseKey,
-      },
-      signal: controller.signal,
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error('No fue posible cargar la información empresarial.');
-        return response.json() as Promise<InformacionEmpresa[]>;
-      })
-      .then(setInformacionEmpresa)
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
-        console.error('Error al cargar información empresarial:', error);
+    try {
+      const url = new URL(supabaseUrl + '/rest/v1/informacion_empresa');
+      url.searchParams.set('select', 'id_informacion,tipo,titulo,contenido');
+      url.searchParams.set('activo', 'eq.true');
+      url.searchParams.set('order', 'id_informacion.asc');
+
+      const response = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: 'Bearer ' + supabaseKey,
+        },
+        signal: controller.signal,
       });
-
-    return () => controller.abort();
+      if (!response.ok) throw new Error('No fue posible cargar la información empresarial.');
+      const data = await response.json() as InformacionEmpresa[];
+      setInformacionEmpresa(data);
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      console.error('Error al cargar información empresarial:', error);
+    }
   }, []);
+
+  useEffect(() => {
+    void cargarInformacion();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [cargarInformacion]);
+
+  useCambiosEnVivo(['informacion_empresa'], cargarInformacion);
 
   const quienesSomos = informacionEmpresa?.find((item) => item.tipo === 'QUIENES_SOMOS');
   const quienesContenido = quienesSomos?.contenido ?? [
@@ -235,6 +248,3 @@ export function AboutSection() {
     </section>
   );
 }
-
-
-

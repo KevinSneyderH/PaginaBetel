@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { fetchVisualAssets, type VisualAsset } from '../utils/visualContentApi';
+import { useCambiosEnVivo } from '../utils/realtime';
 
 interface ResponsiveAnnouncement {
   desktop: VisualAsset | null;
@@ -23,24 +24,38 @@ export function AnnouncementModal({ visible }: { visible: boolean }) {
   const [errorConsulta, setErrorConsulta] = useState(false);
   const [errorImagen, setErrorImagen] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-    void fetchVisualAssets('ANUNCIO')
-      .then(async (assets) => {
-        const sizedAssets = await Promise.all(assets.map(loadImage));
-        const availableAssets = sizedAssets.filter((asset): asset is NonNullable<typeof asset> => asset !== null);
-        const desktop = availableAssets.find(({ width, height }) => width >= 1200 && height >= 800 && width > height)?.asset ?? null;
-        const mobile = availableAssets.find(({ width, height }) => width >= 1122 && height >= 1402 && height > width)?.asset ?? null;
-        if (mounted) setAnnouncement({ desktop, mobile });
-      })
-      .catch(() => {
-        if (!mounted) return;
-        setAnnouncement({ desktop: null, mobile: null });
-        setErrorConsulta(true);
-      })
-      .finally(() => { if (mounted) setCargando(false); });
-    return () => { mounted = false; };
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const cargarAnuncio = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const assets = await fetchVisualAssets('ANUNCIO', controller.signal);
+      const sizedAssets = await Promise.all(assets.map(loadImage));
+      const availableAssets = sizedAssets.filter((asset): asset is NonNullable<typeof asset> => asset !== null);
+      const desktop = availableAssets.find(({ width, height }) => width >= 1200 && height >= 800 && width > height)?.asset ?? null;
+      const mobile = availableAssets.find(({ width, height }) => width >= 1122 && height >= 1402 && height > width)?.asset ?? null;
+      setAnnouncement({ desktop, mobile });
+      setErrorConsulta(false);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      setAnnouncement({ desktop: null, mobile: null });
+      setErrorConsulta(true);
+    } finally {
+      setCargando(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void cargarAnuncio();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [cargarAnuncio]);
+
+  useCambiosEnVivo(['contenido_visual'], cargarAnuncio);
 
   useEffect(() => {
     if (!isOpen) return;

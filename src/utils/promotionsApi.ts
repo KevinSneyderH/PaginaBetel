@@ -14,7 +14,7 @@ interface PromotionRow {
   highlights: string[];
 }
 
-export async function fetchPromotions(): Promise<PromoDay[]> {
+export async function fetchPromotions(signal?: AbortSignal): Promise<PromoDay[]> {
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     throw new Error("La conexión con las promociones no está configurada.");
   }
@@ -27,6 +27,7 @@ export async function fetchPromotions(): Promise<PromoDay[]> {
 
   const response = await fetch(url, {
     cache: "no-store",
+    signal,
     headers: {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY,

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchVisualAssets, type VisualAsset } from "../utils/visualContentApi";
+import { useCambiosEnVivo } from "../utils/realtime";
 
 const AUTOPLAY_INTERVAL = 5000;
 /** Minimum px the finger must travel to count as a swipe */
@@ -75,17 +76,40 @@ export function BannerSlider({ onInitialLoad }: { onInitialLoad?: () => void }) 
     return () => mediaQuery.removeEventListener("change", updateViewport);
   }, []);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const initialLoadReportedRef = useRef(false);
+
+  const cargarSlides = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const data = await fetchVisualAssets("SLIDE", controller.signal);
+      const slidesWithDimensions = await Promise.all(data.map(loadImageDimensions));
+      const validos = slidesWithDimensions.filter((slide): slide is SizedVisualAsset => slide !== null);
+      setAllSlides(validos);
+      setLoadError(false);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+      if (!initialLoadReportedRef.current) {
+        initialLoadReportedRef.current = true;
+        onInitialLoad?.();
+      }
+    }
+  }, [onInitialLoad]);
+
   useEffect(() => {
-    let mounted = true;
-    void fetchVisualAssets("SLIDE")
-      .then(async (data) => {
-        const slidesWithDimensions = await Promise.all(data.map(loadImageDimensions));
-        if (mounted) setAllSlides(slidesWithDimensions.filter((slide): slide is SizedVisualAsset => slide !== null));
-      })
-      .catch(() => { if (mounted) setLoadError(true); })
-      .finally(() => { if (mounted) { setLoading(false); onInitialLoad?.(); } });
-    return () => { mounted = false; };
-  }, []);
+    void cargarSlides();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [cargarSlides]);
+
+  useCambiosEnVivo(["contenido_visual"], cargarSlides);
 
   useEffect(() => {
     setTrackIndex(slides.length > 1 ? 1 : 0);

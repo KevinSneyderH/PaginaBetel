@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
@@ -8,6 +8,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { useCambiosEnVivo } from "../utils/realtime";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -74,6 +75,8 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedVacancy, setSelectedVacancy] = useState<Vacancy | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const notifiedRef = useRef(false);
 
   useEffect(() => {
     if (!selectedVacancy) return;
@@ -91,52 +94,72 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
     };
   }, [selectedVacancy]);
 
-  useEffect(() => {
-    async function loadVacancies() {
-      if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-        setError(
-          "La conexión con el servicio de vacantes no está configurada.",
-        );
-        setLoading(false);
+  const loadVacancies = useCallback(async () => {
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      setError(
+        "La conexión con el servicio de vacantes no está configurada.",
+      );
+      setLoading(false);
+      if (!notifiedRef.current) {
+        notifiedRef.current = true;
         onInitialLoad?.();
-        return;
+      }
+      return;
+    }
+
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const url = new URL(`${SUPABASE_URL}/rest/v1/vacantes`);
+    url.search = new URLSearchParams({
+      select:
+        "id_vacante,titulo,cargo,area,descripcion,funciones,requisitos,ubicacion,modalidad,tipo_contrato,salario,fecha_publicacion,fecha_cierre,correo_postulacion",
+      publicada: "eq.true",
+      estado: "eq.ABIERTA",
+      order: "fecha_publicacion.desc",
+    }).toString();
+
+    try {
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `La consulta respondió con el estado ${response.status}.`,
+        );
       }
 
-      const url = new URL(`${SUPABASE_URL}/rest/v1/vacantes`);
-      url.search = new URLSearchParams({
-        select:
-          "id_vacante,titulo,cargo,area,descripcion,funciones,requisitos,ubicacion,modalidad,tipo_contrato,salario,fecha_publicacion,fecha_cierre,correo_postulacion",
-        publicada: "eq.true",
-        estado: "eq.ABIERTA",
-        order: "fecha_publicacion.desc",
-      }).toString();
-
-      try {
-        const response = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `La consulta respondió con el estado ${response.status}.`,
-          );
-        }
-
-        const data: Vacancy[] = await response.json();
-        setVacancies(data);
-      } catch {
-        setError("No pudimos cargar las vacantes. Intenta de nuevo más tarde.");
-      } finally {
-        setLoading(false);
+      const data: Vacancy[] = await response.json();
+      setVacancies(data);
+      setSelectedVacancy((prev) => (prev ? data.find((v) => v.id_vacante === prev.id_vacante) ?? null : null));
+      setError("");
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setError("No pudimos cargar las vacantes. Intenta de nuevo más tarde.");
+    } finally {
+      setLoading(false);
+      if (!notifiedRef.current) {
+        notifiedRef.current = true;
         onInitialLoad?.();
       }
     }
-
-    void loadVacancies();
   }, [onInitialLoad]);
+
+  useEffect(() => {
+    void loadVacancies();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [loadVacancies]);
+
+  useCambiosEnVivo(["vacantes"], loadVacancies);
 
   return (
     <section
