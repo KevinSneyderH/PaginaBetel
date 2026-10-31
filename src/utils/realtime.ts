@@ -13,66 +13,104 @@ type ListenerCambio = (tabla: string) => void;
 
 class RealtimeHubPublico {
   private client: SupabaseClient | null = null;
+  private clientPromise: Promise<SupabaseClient | null> | null = null;
   private canal: RealtimeChannel | null = null;
+  private canalPromise: Promise<void> | null = null;
   private oyentes = new Set<ListenerCambio>();
   private refCount = 0;
   private temporizadorInactividad: number | null = null;
+  private temporizadorDesconexion: number | null = null;
   private desconectadoPorInactividad = false;
 
-  private async obtenerCliente(): Promise<SupabaseClient | null> {
+  private obtenerCliente(): Promise<SupabaseClient | null> {
+    if (this.client) return Promise.resolve(this.client);
+    if (this.clientPromise) return this.clientPromise;
+
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    if (!supabaseUrl || !supabaseKey) return null;
+    if (!supabaseUrl || !supabaseKey) return Promise.resolve(null);
 
-    if (!this.client) {
-      const { createClient } = await import("@supabase/supabase-js");
+    this.clientPromise = import("@supabase/supabase-js").then(({ createClient }) => {
       this.client = createClient(supabaseUrl, supabaseKey, {
         auth: {
           persistSession: false,
           autoRefreshToken: false,
+          storageKey: "sb-public-betel-realtime",
         },
       });
-    }
-    return this.client;
+      return this.client;
+    });
+
+    return this.clientPromise;
   }
 
   async conectar() {
     this.refCount += 1;
+    this.limpiarTemporizadorDesconexion();
+
     if (this.canal) return;
+    if (this.canalPromise) {
+      await this.canalPromise;
+      return;
+    }
 
-    const cliente = await this.obtenerCliente();
-    if (!cliente) return;
+    this.canalPromise = (async () => {
+      const cliente = await this.obtenerCliente();
+      if (!cliente) return;
+      if (this.canal) return;
 
-    // Se suscribe al canal privado de cambios públicos
-    this.canal = cliente.channel("publico:cambios", {
-      config: { private: true },
-    });
+      // Se suscribe al canal privado de cambios públicos
+      const nuevoCanal = cliente.channel("publico:cambios", {
+        config: { private: true },
+      });
 
-    this.canal.on("broadcast", { event: "cambio" }, (payload) => {
-      const datos = (payload.payload ?? {}) as { tabla?: string };
-      const tablaAfectada = datos.tabla;
-      if (typeof tablaAfectada === "string") {
-        this.notificar(tablaAfectada);
-      }
-    });
+      nuevoCanal.on("broadcast", { event: "cambio" }, (payload) => {
+        const datos = (payload.payload ?? {}) as { tabla?: string };
+        const tablaAfectada = datos.tabla;
+        if (typeof tablaAfectada === "string") {
+          this.notificar(tablaAfectada);
+        }
+      });
 
-    this.canal.subscribe((status) => {
-      if (status === "SUBSCRIBED" && this.desconectadoPorInactividad) {
-        this.desconectadoPorInactividad = false;
-        // Al reconectar tras inactividad, resincroniza todo por si hubo cambios mientras estuvo dormida
-        this.notificar("*");
-      }
-    });
+      nuevoCanal.subscribe((status) => {
+        if (status === "SUBSCRIBED" && this.desconectadoPorInactividad) {
+          this.desconectadoPorInactividad = false;
+          // Al reconectar tras inactividad, resincroniza todo por si hubo cambios
+          this.notificar("*");
+        }
+      });
 
-    this.iniciarDetectorVisibilidad();
+      this.canal = nuevoCanal;
+      this.iniciarDetectorVisibilidad();
+    })();
+
+    try {
+      await this.canalPromise;
+    } finally {
+      this.canalPromise = null;
+    }
   }
 
   desconectar() {
     this.refCount = Math.max(0, this.refCount - 1);
-    if (this.refCount === 0 && this.canal) {
-      void this.canal.unsubscribe();
-      this.canal = null;
-      this.limpiarTemporizadorInactividad();
+    if (this.refCount === 0) {
+      this.limpiarTemporizadorDesconexion();
+      // Periodo de gracia de 1.5s antes de cerrar el WebSocket para evitar desconexiones abruptas
+      // durante montajes rápidos de componentes iniciales o re-renders
+      this.temporizadorDesconexion = window.setTimeout(() => {
+        if (this.refCount === 0 && this.canal) {
+          void this.canal.unsubscribe();
+          this.canal = null;
+          this.limpiarTemporizadorInactividad();
+        }
+      }, 1500);
+    }
+  }
+
+  private limpiarTemporizadorDesconexion() {
+    if (this.temporizadorDesconexion !== null) {
+      window.clearTimeout(this.temporizadorDesconexion);
+      this.temporizadorDesconexion = null;
     }
   }
 

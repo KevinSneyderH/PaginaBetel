@@ -35,8 +35,14 @@ export function AnnouncementModal({ visible }: { visible: boolean }) {
       const assets = await fetchVisualAssets('ANUNCIO', controller.signal);
       const sizedAssets = await Promise.all(assets.map(loadImage));
       const availableAssets = sizedAssets.filter((asset): asset is NonNullable<typeof asset> => asset !== null);
-      const desktop = availableAssets.find(({ width, height }) => width >= 1200 && height >= 800 && width > height)?.asset ?? null;
-      const mobile = availableAssets.find(({ width, height }) => width >= 1122 && height >= 1402 && height > width)?.asset ?? null;
+      const desktop = availableAssets.find(({ width, height }) => (width >= 1200 && height >= 800 && width > height))?.asset
+        ?? availableAssets.find(({ width, height }) => width >= height)?.asset
+        ?? availableAssets[0]?.asset
+        ?? null;
+      const mobile = availableAssets.find(({ width, height }) => (width >= 1122 && height >= 1402 && height > width))?.asset
+        ?? availableAssets.find(({ width, height }) => height > width)?.asset
+        ?? availableAssets[0]?.asset
+        ?? null;
       setAnnouncement({ desktop, mobile });
       setErrorConsulta(false);
     } catch (err) {

@@ -27,14 +27,16 @@ function preloadImage(url: string) {
   img.src = url;
 }
 
-function hasDesktopDimensions(slide: SizedVisualAsset) {
-  const desktopRatio = 1920 / 640;
-  return slide.width >= 1920 && slide.height >= 640 && Math.abs(slide.width / slide.height - desktopRatio) < 0.05;
+function isDesktopSlide(slide: SizedVisualAsset): boolean {
+  if (slide.imagen_path.startsWith("slide/portal/")) return true;
+  if (slide.imagen_path.startsWith("slide/movil/")) return false;
+  return slide.width >= slide.height;
 }
 
-function hasMobileDimensions(slide: SizedVisualAsset) {
-  const mobileRatio = 1080 / 1350;
-  return slide.width <= 1080 && slide.height <= 1350 && Math.abs(slide.width / slide.height - mobileRatio) < 0.05;
+function isMobileSlide(slide: SizedVisualAsset): boolean {
+  if (slide.imagen_path.startsWith("slide/movil/")) return true;
+  if (slide.imagen_path.startsWith("slide/portal/")) return false;
+  return slide.height > slide.width;
 }
 
 export function BannerSlider({ onInitialLoad }: { onInitialLoad?: () => void }) {
@@ -58,10 +60,15 @@ export function BannerSlider({ onInitialLoad }: { onInitialLoad?: () => void }) 
   const isDraggingRef = useRef(false);
   const trackContainerRef = useRef<HTMLDivElement>(null);
 
-  const slides = useMemo(
-    () => allSlides.filter(isMobile ? hasMobileDimensions : hasDesktopDimensions),
-    [allSlides, isMobile],
-  );
+  const slides = useMemo(() => {
+    const desktopSlides = allSlides.filter(isDesktopSlide);
+    const mobileSlides = allSlides.filter(isMobileSlide);
+
+    if (isMobile) {
+      return mobileSlides.length > 0 ? mobileSlides : allSlides;
+    }
+    return desktopSlides.length > 0 ? desktopSlides : allSlides;
+  }, [allSlides, isMobile]);
 
   // Preload all slide images once they are known so rapid navigation never shows blanks
   useEffect(() => {
