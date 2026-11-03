@@ -5,6 +5,7 @@ import {
   BriefcaseBusiness,
   Clock,
   HeartHandshake,
+  Image as ImageIcon,
   Mail,
   MapPin,
   MessageCircle,
@@ -84,27 +85,12 @@ function formatoFecha(valor: string | null) {
   }).format(new Date(`${valor}T00:00:00Z`));
 }
 
-/**
- * Una vacante es "solo afiche" cuando RRHH subió el diseño gráfico y no escribió
- * funciones, requisitos ni datos adicionales: toda la información está en la imagen.
- */
-function esSoloAfiche(vacancy: Vacancy) {
-  return Boolean(
-    vacancy.imagen_url &&
-      !vacancy.funciones &&
-      !vacancy.requisitos &&
-      !vacancy.salario &&
-      !vacancy.modalidad &&
-      !vacancy.tipo_contrato,
-  );
-}
-
 export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void } = {}) {
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedVacancy, setSelectedVacancy] = useState<Vacancy | null>(null);
-  const [aficheEnGrande, setAficheEnGrande] = useState<Vacancy | null>(null);
+  const [aficheEnGrande, setAficheEnGrande] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const notifiedRef = useRef(false);
 
@@ -342,7 +328,6 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {vacancies.map((vacancy) => {
                 const title = vacancy.titulo || vacancy.cargo;
-                const soloAfiche = esSoloAfiche(vacancy);
 
                 return (
                   <article
@@ -351,37 +336,34 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
                   >
                     {/* Header visual: Afiche o Banner ilustrado */}
                     {vacancy.imagen_url ? (
-                      <button
-                        type="button"
-                        onClick={() => setAficheEnGrande(vacancy)}
-                        aria-label={`Ampliar afiche de ${title}`}
-                        className="relative flex h-80 w-full cursor-zoom-in items-center justify-center overflow-hidden bg-emerald-950"
-                      >
-                        {/* Fondo difuminado con la misma imagen para rellenar sin recortar el afiche */}
-                        <img
-                          src={vacancy.imagen_url}
-                          alt=""
-                          aria-hidden="true"
-                          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-2xl"
-                          loading="lazy"
-                        />
+                      <div className="relative h-56 w-full overflow-hidden bg-slate-900">
                         <img
                           src={vacancy.imagen_url}
                           alt={`Afiche de ${title}`}
-                          className="relative h-full w-full object-contain p-3 drop-shadow-xl transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                          className="h-full w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
                           loading="lazy"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-black/30"
                         />
                         <div className="absolute left-3 top-3 right-3 flex items-center justify-between">
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/90 px-3 py-1 text-[11px] font-bold text-white shadow-sm backdrop-blur-md">
                             <span className="size-2 rounded-full bg-lime-300 animate-pulse" />
                             Convocatoria abierta
                           </span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white shadow-sm backdrop-blur-md">
+                            <ImageIcon className="size-3 text-lime-300" />
+                            Afiche
+                          </span>
                         </div>
-                        <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-md transition group-hover:bg-black/80">
-                          <ZoomIn className="size-3.5 text-lime-300" />
-                          Ampliar afiche
-                        </span>
-                      </button>
+                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-100 drop-shadow-sm">
+                            <BriefcaseBusiness className="size-3.5 text-lime-300" />
+                            {vacancy.area || "Supermercados Betel"}
+                          </span>
+                        </div>
+                      </div>
                     ) : (
                       <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-900 to-teal-950 p-5 text-white flex flex-col justify-between">
                         <div
@@ -449,51 +431,29 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
                         )}
                       </div>
 
-                      {!soloAfiche && (
-                        <p className="mt-3.5 line-clamp-2 text-sm leading-relaxed text-slate-600">
-                          {vacancy.descripcion}
-                        </p>
-                      )}
+                      <p className="mt-3.5 line-clamp-2 text-sm leading-relaxed text-slate-600">
+                        {vacancy.descripcion}
+                      </p>
 
                       {/* Botones de acción */}
                       <div className="mt-auto flex flex-col gap-2 pt-5">
-                        {soloAfiche ? (
-                          <button
-                            type="button"
-                            onClick={() => setAficheEnGrande(vacancy)}
-                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
-                          >
-                            <ZoomIn className="size-4" />
-                            Ver afiche completo
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedVacancy(vacancy)}
-                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
-                          >
-                            Ver vacante {vacancy.imagen_url ? "y afiche" : "completa"}
-                            <ArrowUpRight className="size-4" />
-                          </button>
-                        )}
-                        <div className="grid grid-cols-2 gap-2">
-                          <a
-                            href={whatsappLink(title)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 text-xs font-bold text-emerald-900 transition hover:border-emerald-300 hover:bg-emerald-100/80 active:scale-[0.98]"
-                          >
-                            <MessageCircle className="size-4 text-emerald-700" />
-                            WhatsApp
-                          </a>
-                          <a
-                            href={applicationLink(title, vacancy.correo_postulacion || recruitmentEmail)}
-                            className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50/70 px-3 text-xs font-bold text-orange-900 transition hover:border-orange-300 hover:bg-orange-100/80 active:scale-[0.98]"
-                          >
-                            <Mail className="size-4 text-orange-600" />
-                            Correo
-                          </a>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedVacancy(vacancy)}
+                          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+                        >
+                          Ver vacante {vacancy.imagen_url ? "y afiche" : "completa"}
+                          <ArrowUpRight className="size-4" />
+                        </button>
+                        <a
+                          href={whatsappLink(title)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 text-xs font-bold text-emerald-900 transition hover:border-emerald-300 hover:bg-emerald-100/80 active:scale-[0.98]"
+                        >
+                          <MessageCircle className="size-4 text-emerald-700" />
+                          Postularme por WhatsApp
+                        </a>
                       </div>
                     </div>
                   </article>
@@ -520,7 +480,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
 
             return (
               <div
-                className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/65 p-0 backdrop-blur-sm sm:items-center sm:p-5"
+                className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/65 p-0 backdrop-blur-sm sm:items-center sm:p-5"
                 onMouseDown={(event) => {
                   if (event.target === event.currentTarget) setSelectedVacancy(null);
                 }}
@@ -574,10 +534,10 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
                               src={selectedVacancy.imagen_url}
                               alt={`Afiche de ${title}`}
                               className="mx-auto max-h-[460px] w-auto object-contain cursor-zoom-in transition-transform duration-300 group-hover:scale-[1.02]"
-                              onClick={() => setAficheEnGrande(selectedVacancy)}
+                              onClick={() => setAficheEnGrande(selectedVacancy.imagen_url)}
                             />
                             <div
-                              onClick={() => setAficheEnGrande(selectedVacancy)}
+                              onClick={() => setAficheEnGrande(selectedVacancy.imagen_url)}
                               className="absolute inset-0 flex cursor-zoom-in items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
                             >
                               <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-bold text-slate-900 shadow-lg">
@@ -587,7 +547,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
                           </div>
                           <button
                             type="button"
-                            onClick={() => setAficheEnGrande(selectedVacancy)}
+                            onClick={() => setAficheEnGrande(selectedVacancy.imagen_url)}
                             className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-lime-300 hover:text-lime-200"
                           >
                             <ZoomIn className="size-3.5" /> Ver afiche en pantalla completa
@@ -676,10 +636,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
           {/* Lightbox para ver afiche en pantalla completa */}
           {aficheEnGrande && (
             <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Afiche de la vacante"
-              className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4 pb-20 backdrop-blur-md"
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
               onClick={() => setAficheEnGrande(null)}
             >
               <button
@@ -691,35 +648,10 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
                 <X className="size-6" />
               </button>
               <img
-                src={aficheEnGrande.imagen_url ?? ""}
-                alt={`Afiche de ${aficheEnGrande.titulo || aficheEnGrande.cargo} en tamaño completo`}
-                onClick={(event) => event.stopPropagation()}
-                className="max-h-[calc(92vh-5rem)] max-w-[92vw] rounded-2xl object-contain shadow-2xl"
+                src={aficheEnGrande}
+                alt="Afiche oficial de la vacante en tamaño completo"
+                className="max-h-[92vh] max-w-[92vw] rounded-2xl object-contain shadow-2xl"
               />
-              <div
-                className="absolute inset-x-0 bottom-4 flex flex-wrap items-center justify-center gap-2 px-4"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <a
-                  href={whatsappLink(aficheEnGrande.titulo || aficheEnGrande.cargo)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-700"
-                >
-                  <MessageCircle className="size-4" />
-                  Postularme por WhatsApp
-                </a>
-                <a
-                  href={applicationLink(
-                    aficheEnGrande.titulo || aficheEnGrande.cargo,
-                    aficheEnGrande.correo_postulacion || recruitmentEmail,
-                  )}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-slate-900 shadow-lg transition hover:bg-slate-100"
-                >
-                  <Mail className="size-4 text-orange-600" />
-                  Enviar por correo
-                </a>
-              </div>
             </div>
           )}
 
