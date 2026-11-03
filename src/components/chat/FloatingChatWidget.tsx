@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
+import { assetPath } from "../../utils/assetPath";
 import BetelChatBox from "./BetelChatBox";
 
 interface FloatingChatWidgetProps {
@@ -93,7 +94,11 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
           {isOpen ? (
             <X className="size-6 text-white" />
           ) : (
-            <MessageCircle className="size-6 relative z-10" />
+            <img
+              src={assetPath("/chatbot-avatar.png")}
+              alt="Asistente Betel"
+              className="size-10 object-contain drop-shadow select-none pointer-events-none"
+            />
           )}
 
           {/* Insignia de notificación */}

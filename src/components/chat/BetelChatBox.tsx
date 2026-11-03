@@ -738,10 +738,10 @@ export default function BetelChatBox({
       {/* Encabezado Verde Bosque Institucional */}
       <header className="relative flex shrink-0 items-center justify-between border-b border-lime-500/20 bg-gradient-to-r from-emerald-950 via-[#12351d] to-[#092b17] px-4 py-3 text-white shadow-md">
         <div className="flex items-center gap-2.5">
-          <div className="relative size-10 shrink-0 overflow-hidden rounded-2xl border border-lime-400/30 bg-white/10 p-1 backdrop-blur-md">
+          <div className="relative size-10 shrink-0 overflow-hidden rounded-2xl border border-lime-400/40 bg-white/15 p-0.5 backdrop-blur-md shadow-inner">
             <img
-              src={assetPath("/logo.png")}
-              alt="Supermercados Betel"
+              src={assetPath("/chatbot-avatar.png")}
+              alt="Asistente Betel"
               className="size-full object-contain"
             />
             <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-[#12351d] bg-lime-400" />
@@ -838,8 +838,12 @@ export default function BetelChatBox({
               className={`flex items-end gap-2 ${isUser ? "justify-end" : "justify-start"}`}
             >
               {!isUser && (
-                <div className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold">
-                  B
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-white/95 border border-emerald-200/90 shadow-2xs overflow-hidden p-0.5">
+                  <img
+                    src={assetPath("/chatbot-avatar.png")}
+                    alt="Asistente Betel"
+                    className="size-full object-contain"
+                  />
                 </div>
               )}
 
