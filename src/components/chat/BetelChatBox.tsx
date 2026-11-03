@@ -3,6 +3,7 @@ import {
   ArrowUp,
   Briefcase,
   Check,
+  ChevronDown,
   CircleHelp,
   Copy,
   ExternalLink,
@@ -285,6 +286,12 @@ export default function BetelChatBox({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  const dismissKeyboard = () => {
+    inputRef.current?.blur();
+    setIsInputFocused(false);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -1280,19 +1287,37 @@ export default function BetelChatBox({
       {/* Barra de entrada de texto */}
       <form
         onSubmit={(e) => void sendMessage(e)}
-        className="flex shrink-0 items-center gap-2 border-t border-lime-200/60 bg-white p-3"
+        className="relative flex shrink-0 items-center gap-2 border-t border-lime-200/60 bg-white p-3"
       >
+        {/* Botón flotante para ocultar el teclado (visible cuando el input está enfocado en móvil) */}
+        {isInputFocused && (
+          <button
+            type="button"
+            onClick={dismissKeyboard}
+            aria-label="Ocultar teclado"
+            title="Ocultar teclado"
+            className="flex size-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-slate-600 transition hover:bg-slate-200 active:scale-95 sm:hidden"
+          >
+            <ChevronDown size={18} />
+          </button>
+        )}
+
         <input
           ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onFocus={() => {
+            setIsInputFocused(true);
             setTimeout(() => {
               if (scrollRef.current) {
                 scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
               }
             }, 120);
+          }}
+          onBlur={() => {
+            // Breve delay por si se pulsa el botón de enviar
+            setTimeout(() => setIsInputFocused(false), 200);
           }}
           disabled={sending}
           placeholder={

@@ -12,14 +12,21 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
   const [isExpanded, setIsExpanded] = useState(false);
   const [mobileViewportHeight, setMobileViewportHeight] = useState<number | null>(null);
 
-  // Escucha visualViewport para adaptar la altura en tiempo real cuando el teclado móvil sube/baja
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  // Escucha visualViewport para detectar exactamente cuánto empuja el teclado virtual hacia arriba
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return;
 
     const handleViewportChange = () => {
       if (window.innerWidth < 640 && window.visualViewport) {
+        // En móviles, la diferencia entre window.innerHeight y visualViewport.height indica el teclado
+        const diff = window.innerHeight - window.visualViewport.height;
+        const offset = Math.max(0, diff - (window.visualViewport.offsetTop || 0));
+        setKeyboardOffset(offset);
         setMobileViewportHeight(window.visualViewport.height);
       } else {
+        setKeyboardOffset(0);
         setMobileViewportHeight(null);
       }
     };
@@ -78,6 +85,7 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
             role="complementary"
             aria-label="Ventana de ayuda y atención Betel"
             style={{
+              bottom: keyboardOffset > 0 ? `${keyboardOffset}px` : undefined,
               height:
                 mobileViewportHeight && !isExpanded
                   ? `${mobileViewportHeight}px`
@@ -86,7 +94,7 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
             className={
               isExpanded
                 ? "fixed inset-2 sm:inset-8 z-50 mx-auto my-auto w-[min(820px,calc(100vw-16px))] sm:w-[min(820px,calc(100vw-32px))] h-[min(720px,calc(100dvh-32px))] sm:h-[min(720px,calc(100dvh-64px))] animate-in zoom-in-95 duration-200"
-                : "fixed inset-x-0 bottom-0 top-0 sm:top-auto sm:inset-x-auto sm:bottom-24 sm:right-6 z-50 w-full sm:w-[430px] h-[100dvh] sm:h-[min(580px,calc(100dvh-130px))] animate-in zoom-in-95 fade-in duration-200"
+                : "fixed inset-x-0 bottom-0 top-0 sm:top-auto sm:inset-x-auto sm:bottom-24 sm:right-6 z-50 w-full sm:w-[430px] h-[100dvh] sm:h-[min(580px,calc(100dvh-130px))] transition-[bottom] duration-150 ease-out animate-in zoom-in-95 fade-in"
             }
           >
             <BetelChatBox
