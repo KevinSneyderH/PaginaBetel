@@ -216,7 +216,7 @@ function getInitialMessages(): ChatMessage[] {
   return [
     newMessage(
       "assistant",
-      "¡Hola! Soy el asistente virtual de **Supermercados Betel** 🛒.\n\nPuedo ayudarte a:\n• 🚚 **Pedir un domicilio** eligiendo tu sede para ir a WhatsApp\n• 📍 **Ver direcciones** y abrir nuestras sedes en **Google Maps**\n• 🏷️ Consultar **promociones, cafeterías, servicios, sostenibilidad y vacantes**\n• 📞 Comunicarte con **Atención General Betel y PQRS (317 679 7058)**\n\n¿En qué te puedo colaborar hoy?",
+      "¡Hola! Soy el asistente virtual de **Supermercados Betel** 🛒.\n\nPuedo ayudarte a:\n• 🚚 **Pedir un domicilio** eligiendo tu sede para ir a WhatsApp\n• 📍 **Ver direcciones** y abrir nuestras sedes en **Google Maps**\n• 💼 **Consultar vacantes de empleo**, promociones y cafeterías\n• 📞 Comunicarte con **Atención General Betel y PQRS (317 679 7058)**\n\n¿En qué te puedo colaborar hoy?",
     ),
   ];
 }
@@ -405,19 +405,37 @@ export default function BetelChatBox({
 
     setInput("");
 
-    // Si estaba seleccionando sede de domicilio y escribe el nombre de una sede
-    if (selectingOrderStore) {
-      const norm = text
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      const matched = sedesActions.find((s) => {
+    const norm = text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+    // Helper para buscar sede activa de forma flexible por nombre o alias común
+    const findActiveStore = (q: string): ChatStoreAction | undefined => {
+      return sedesActions.find((s) => {
         const sNorm = s.nombre
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .toLowerCase();
-        return norm.includes(sNorm) || (sNorm === "ceiba 2" && /\bceiba\b/.test(norm));
+        if (q.includes(sNorm)) return true;
+        if (sNorm === "la garita" && /\bgarita\b/.test(q)) return true;
+        if (sNorm === "ceiba 2" && /\bceiba\b/.test(q)) return true;
+        if (sNorm === "la floresta" && /\bfloresta\b/.test(q)) return true;
+        if (sNorm === "prados del este" && /\bprados\b/.test(q)) return true;
+        if (sNorm === "villa mall" && /\b(villamall|villa mall)\b/.test(q)) return true;
+        if (sNorm === "el contento" && /\bcontento\b/.test(q)) return true;
+        if (sNorm === "los patios" && /\bpatios\b/.test(q)) return true;
+        if (sNorm === "chinacota" && /\bchinacota\b/.test(q)) return true;
+        if (sNorm === "san rafael" && /\bsan rafael\b/.test(q)) return true;
+        if (sNorm === "bocono" && /\bbocono\b/.test(q)) return true;
+        if (sNorm === "chapinero" && /\bchapinero\b/.test(q)) return true;
+        return false;
       });
+    };
+
+    // Si estaba seleccionando sede de domicilio y escribe el nombre de una sede
+    if (selectingOrderStore) {
+      const matched = findActiveStore(norm);
       if (matched) {
         handleSelectOrderStore(matched);
         return;
@@ -426,6 +444,170 @@ export default function BetelChatBox({
     }
 
     setMessages((current) => [...current, newMessage("user", text)]);
+
+    // 1. INTENT: Trabajo / Empleo / Vacantes / Ofertas de trabajo (NUNCA confundir con ofertas de supermercado)
+    const isJobInquiry =
+      /\b(trabajo|trabajar|empleo|empleos|vacante|vacantes|laboral|laborales|hoja de vida|curriculum|curriculo|cv|postular|postularme|postulacion|contratacion|seleccion|recursos humanos|rrhh|talento humano)\b/.test(
+        norm,
+      ) ||
+      (/\b(oferta|ofertas)\b/.test(norm) && /\b(trabajo|laboral|laborales|empleo)\b/.test(norm)) ||
+      (/\b(trabajo|laboral|laborales|empleo)\b/.test(norm) && /\b(oferta|ofertas)\b/.test(norm));
+
+    if (isJobInquiry) {
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `💼 **Convocatorias y Oportunidades Laborales en Supermercados Betel**\n\n¡Qué alegría tu interés en ser parte de la familia Betel! 🛒✨ En Betel buscamos personas comprometidas, con vocación de servicio y ganas de crecer profesionalmente.\n\n📌 **¿Cómo postularte?**\n• Puedes ver todas nuestras **vacantes abiertas**, requisitos y cargos disponibles en la sección de [Empleo de nuestra web](#empleo).\n• Envía tu hoja de vida en PDF al correo oficial: **seleccionrh.betel@gmail.com**\n• También puedes escribir directamente al equipo de Selección en WhatsApp: **317 517 7648**.\n\nToca cualquiera de los botones de abajo para ir directamente:`,
+          {
+            intent: "vacantes",
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // 2. INTENT: Domicilios / Pedidos
+    const isOrderInquiry = /\b(pedido|pedidos|domicilio|domicilios|comprar|compra|pedir|ordenar|llevar a casa)\b/.test(
+      norm,
+    );
+    if (isOrderInquiry) {
+      const store = findActiveStore(norm);
+      if (store) {
+        setMessages((current) => [
+          ...current,
+          newMessage(
+            "assistant",
+            `¡Excelente elección! 🚚 Para realizar tu pedido a domicilio en la sede **Betel ${store.nombre}**, comunícate al número **${store.telefono}**.\n\n📍 **Dirección:** ${store.direccion}\n🕒 **Horario:** ${store.horario || "Habitual"}${store.servicio_nocturno ? `\n🌙 **${store.servicio_nocturno}**` : ""}\n\nToca el botón a continuación para abrir WhatsApp y hacer tu pedido:`,
+            { intent: "order_store", stores: [store] },
+          ),
+        ]);
+      } else {
+        setSelectingOrderStore(true);
+        setMessages((current) => [
+          ...current,
+          newMessage(
+            "assistant",
+            `¡Con mucho gusto! 🚚 **¿De qué sede quieres pedir tu domicilio?**\n\nSelecciona tu sede a continuación entre nuestras ${sedesActions.length} sedes activas para mostrarte su número directo en WhatsApp:`,
+            { intent: "select_order_store", stores: sedesActions, generalPhone: ATENCION_GENERAL_PHONE },
+          ),
+        ]);
+      }
+      return;
+    }
+
+    // 3. INTENT: Consulta de sede específica (ej: "La Garita", "Boconó", etc.)
+    const specificStore = findActiveStore(norm);
+    const mentionsStoreKeywords = /\b(sede|donde|ubicacion|ubicado|direccion|horario|telefono|contacto|queda|abierto|maps|mapa|llegar|ruta)\b/.test(
+      norm,
+    );
+    const isPromoSpecific = /\b(promo|promos|promocion|promociones|descuento|descuentos)\b/.test(norm);
+
+    if (specificStore && !isPromoSpecific && (mentionsStoreKeywords || norm.length < 25)) {
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `📍 **Sede Supermercados Betel ${specificStore.nombre}** (${specificStore.ciudad || "Cúcuta"}):\n\n` +
+            `• 📍 **Dirección:** ${specificStore.direccion}\n` +
+            `• 📞 **Teléfono / WhatsApp:** ${specificStore.telefono}\n` +
+            `• 🕒 **Horario de atención:** ${specificStore.horario || "Habitual"}\n` +
+            `${specificStore.servicio_nocturno ? `• 🌙 **Servicio:** ${specificStore.servicio_nocturno}\n` : ""}` +
+            `${specificStore.tiene_cafeteria ? `• ☕ **Cafetería:** Disponible (${specificStore.horario_cafeteria || "Horario habitual"})\n` : ""}` +
+            `\nPuedes pulsar abajo para ver la ruta en **Google Maps** o escribir directamente por **WhatsApp**:`,
+          {
+            intent: "order_store",
+            stores: [specificStore],
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // 4. INTENT: Consulta general de sedes / direcciones / puntos de venta
+    const isAllStoresQuery =
+      /\b(sedes|sede|sucursales|sucursal|tiendas|tienda|puntos de venta|donde estan|donde quedan|donde los encuentro|ubicaciones|direcciones)\b/.test(
+        norm,
+      ) && !/\b(cafeteria|cafeterias|promo|promocion|promociones|descuento)\b/.test(norm);
+
+    if (isAllStoresQuery) {
+      const lista = sedesActions
+        .map(
+          (s) =>
+            `• **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.direccion} — Tel: ${s.telefono}${s.horario ? ` (${s.horario})` : ""}`,
+        )
+        .join("\n");
+
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `📍 **Nuestras ${sedesActions.length} Sedes Activas de Supermercados Betel:**\n\n${lista}\n\nPuedes pulsar **Abrir en Maps** en cualquiera de las sedes a continuación para ver cómo llegar o escribir a su **WhatsApp**:`,
+          {
+            intent: "stores_list",
+            stores: sedesActions,
+            generalPhone: ATENCION_GENERAL_PHONE,
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // 5. INTENT: Cafeterías Betel
+    const isCafeteriaQuery = /\b(cafeteria|cafeterias|cafe|tinto|desayuno|desayunos|almuerzo|almuerzos|panaderia|pasteleria)\b/.test(
+      norm,
+    );
+    if (isCafeteriaQuery) {
+      const sedesCafeteria = sedesActions.filter((s) => s.tiene_cafeteria);
+      const lista = sedesCafeteria
+        .map(
+          (s) =>
+            `• **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.horario_cafeteria || s.horario || "Horario habitual"} — Tel: ${s.telefono}`,
+        )
+        .join("\n");
+
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `☕ **Cafeterías y Panadería Betel:**\nDisfruta de café 100% colombiano recién molido, panadería y pastelería horneada cada mañana, desayunos tradicionales y combos especiales.\n\nContamos con servicio de Cafetería en estas **${sedesCafeteria.length} sedes**:\n${lista}\n\nPuedes pulsar abajo para ver la ubicación en Maps o comunicarte por WhatsApp:`,
+          {
+            intent: "stores_list",
+            stores: sedesCafeteria,
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // 6. INTENT: 24 Horas o Servicio Nocturno
+    const isNightServiceQuery = /\b(24 horas|24h|veinticuatro horas|nocturn[ao]|de noche|madrugada|abierto de noche)\b/.test(
+      norm,
+    );
+    if (isNightServiceQuery) {
+      const sedes24 = sedesActions.filter(
+        (s) => s.servicio_nocturno || s.horario?.toLowerCase().includes("24"),
+      );
+      const lista = sedes24
+        .map(
+          (s) =>
+            `• **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.horario}${s.servicio_nocturno ? ` | ${s.servicio_nocturno}` : ""} — Tel: ${s.telefono}`,
+        )
+        .join("\n");
+
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `🌙 **Sedes Betel con servicio 24 horas y ventanilla nocturna:**\n\n${lista}\n\n¡Siempre listos para atenderte a cualquier hora del día o de la noche!`,
+          {
+            intent: "stores_list",
+            stores: sedes24,
+          },
+        ),
+      ]);
+      return;
+    }
 
     // Si está en flujo interactivo paso a paso de PQRS (cuando ENABLE_PQRS_FLOW === true)
     if (ENABLE_PQRS_FLOW && showCaseForm && caseStep) {
@@ -458,23 +640,25 @@ export default function BetelChatBox({
         setSelectingOrderStore(true);
       }
 
+      let replyText = data.reply.trim();
+      if (intent === "stores_list") {
+        replyText = replyText.replace(/10\s*sedes/gi, `${sedesActions.length} sedes`);
+      }
+
       setMessages((current) => [
         ...current,
-        newMessage("assistant", data.reply.trim(), {
+        newMessage("assistant", replyText, {
           intent,
-          stores: storesFromApi ?? (intent === "select_order_store" ? sedesActions : undefined),
+          stores:
+            intent === "stores_list" || intent === "select_order_store"
+              ? sedesActions
+              : storesFromApi,
           generalPhone: data.generalPhone || ATENCION_GENERAL_PHONE,
         }),
       ]);
     } catch {
       // Fallback local inteligente en caso de que no haya conexión momentánea
-      const norm = text
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      const matchedStore = sedesActions.find((s) =>
-        norm.includes(s.nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()),
-      );
+      const matchedStore = findActiveStore(norm);
 
       if (/\b(pqrs|queja|reclamo|peticion|sugerencia|asesor)\b/.test(norm)) {
         setMessages((current) => [
@@ -804,7 +988,11 @@ export default function BetelChatBox({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-none sm:rounded-3xl border-0 sm:border border-lime-200/80 bg-[#fffdf8] shadow-2xl">
+    <div
+      className={`flex h-full flex-col overflow-hidden ${
+        isExpanded ? "rounded-2xl" : "rounded-3xl"
+      } border border-lime-200/80 bg-[#fffdf8] shadow-2xl`}
+    >
       {/* Encabezado Verde Bosque Institucional */}
       <header className="relative flex shrink-0 items-center justify-between border-b border-lime-500/20 bg-gradient-to-r from-emerald-950 via-[#12351d] to-[#092b17] px-4 py-3 text-white shadow-md">
         <div className="flex items-center gap-2.5">
@@ -1249,7 +1437,14 @@ export default function BetelChatBox({
             </button>
             <button
               type="button"
-              onClick={() => void sendMessage(undefined, "¿Qué servicios, cafeterías y vacantes tiene Supermercados Betel?")}
+              onClick={() => void sendMessage(undefined, "¿Qué vacantes y ofertas de trabajo tienen disponibles?")}
+              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
+            >
+              <Briefcase size={13} className="text-emerald-700" /> Vacantes / Empleo
+            </button>
+            <button
+              type="button"
+              onClick={() => void sendMessage(undefined, "¿Qué servicios y cafeterías tiene Supermercados Betel?")}
               className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
             >
               <Sparkles size={13} className="text-amber-500" /> Servicios y Cafeterías

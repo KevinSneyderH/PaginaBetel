@@ -43,11 +43,11 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
     };
   }, []);
 
-  // Bloquear el scroll de fondo en móvil o cuando está expandido para evitar desplazamientos accidentales
+  // Bloquear el scroll de fondo solo cuando está expandido para permitir una experiencia natural
   useEffect(() => {
     if (!isOpen) return;
     const prevOverflow = document.body.style.overflow;
-    if (window.innerWidth < 640 || isExpanded) {
+    if (isExpanded) {
       document.body.style.overflow = "hidden";
     }
 
@@ -85,16 +85,16 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
             role="complementary"
             aria-label="Ventana de ayuda y atención Betel"
             style={{
-              bottom: keyboardOffset > 0 ? `${keyboardOffset}px` : undefined,
-              height:
-                mobileViewportHeight && !isExpanded
-                  ? `${mobileViewportHeight}px`
+              bottom: keyboardOffset > 0 ? `${keyboardOffset + 10}px` : undefined,
+              maxHeight:
+                keyboardOffset > 0 && mobileViewportHeight
+                  ? `${mobileViewportHeight - 16}px`
                   : undefined,
             }}
             className={
               isExpanded
-                ? "fixed inset-2 sm:inset-8 z-50 mx-auto my-auto w-[min(820px,calc(100vw-16px))] sm:w-[min(820px,calc(100vw-32px))] h-[min(720px,calc(100dvh-32px))] sm:h-[min(720px,calc(100dvh-64px))] animate-in zoom-in-95 duration-200"
-                : "fixed inset-x-0 bottom-0 top-0 sm:top-auto sm:inset-x-auto sm:bottom-24 sm:right-6 z-50 w-full sm:w-[430px] h-[100dvh] sm:h-[min(580px,calc(100dvh-130px))] transition-[bottom] duration-150 ease-out animate-in zoom-in-95 fade-in"
+                ? "fixed inset-2 sm:inset-8 z-50 mx-auto my-auto w-[calc(100vw-16px)] sm:w-[min(820px,calc(100vw-32px))] h-[calc(100dvh-16px)] sm:h-[min(720px,calc(100dvh-64px))] rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200"
+                : "fixed inset-x-3 bottom-24 sm:inset-x-auto sm:bottom-24 sm:right-6 z-50 w-auto sm:w-[430px] h-[min(540px,calc(100dvh-120px))] rounded-3xl shadow-2xl transition-[bottom] duration-150 ease-out animate-in zoom-in-95 fade-in border border-emerald-900/10"
             }
           >
             <BetelChatBox

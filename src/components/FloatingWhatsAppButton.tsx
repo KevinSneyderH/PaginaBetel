@@ -16,10 +16,10 @@ export function FloatingWhatsAppButton({ onClick }: FloatingWhatsAppButtonProps)
         type="button"
         onClick={onClick}
         aria-label="Abrir chat de WhatsApp"
-        className="relative flex items-center justify-center size-[72px] sm:size-[72px] transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer focus:outline-hidden"
+        className="relative flex items-center justify-center size-20 sm:size-[84px] transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer focus:outline-hidden"
       >
         {/* Pulsing ring */}
-          <span className="absolute inset-1.5 rounded-full bg-emerald-400/40 animate-ping pointer-events-none"></span>
+        <span className="absolute inset-2 rounded-full bg-emerald-400/40 animate-ping pointer-events-none"></span>
 
         <div className="animate-betel-waiting size-full flex items-center justify-center">
           <img
