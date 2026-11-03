@@ -520,7 +520,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
 
             return (
               <div
-                className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/65 p-0 backdrop-blur-sm sm:items-center sm:p-5"
+                className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/65 p-0 backdrop-blur-sm sm:items-center sm:p-5"
                 onMouseDown={(event) => {
                   if (event.target === event.currentTarget) setSelectedVacancy(null);
                 }}
@@ -679,7 +679,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
               role="dialog"
               aria-modal="true"
               aria-label="Afiche de la vacante"
-              className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 pb-20 backdrop-blur-md"
+              className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4 pb-20 backdrop-blur-md"
               onClick={() => setAficheEnGrande(null)}
             >
               <button
