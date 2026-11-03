@@ -46,7 +46,7 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
             className={
               isExpanded
                 ? "fixed inset-4 sm:inset-8 z-[80] mx-auto my-auto w-[min(820px,calc(100vw-32px))] h-[min(720px,calc(100dvh-64px))] animate-in zoom-in-95 duration-200"
-                : "fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-[80] w-[min(430px,calc(100vw-24px))] h-[min(620px,calc(100dvh-110px))] animate-in zoom-in-95 fade-in duration-200"
+                : "fixed bottom-[160px] sm:bottom-24 right-4 sm:right-6 left-4 sm:left-auto z-[80] sm:w-[430px] h-[min(560px,calc(100dvh-180px))] animate-in zoom-in-95 fade-in duration-200"
             }
           >
             <BetelChatBox
@@ -64,7 +64,7 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
       )}
 
       {/* Botón flotante estilo Betel en la esquina inferior derecha */}
-      <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[70] flex items-center group">
+      <div className="fixed bottom-24 right-5 sm:bottom-6 sm:right-6 z-[70] flex items-center group">
         {/* Tooltip informativo al pasar el cursor */}
         {!isOpen && (
           <div className="hidden sm:block mr-3 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap border border-slate-800">
