@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { MessageCircle, X, Search, Send, MapPin, Sparkles } from 'lucide-react';
-import { SEDES_DATA, type Sede } from '../data/sedesData';
+import type { Sede } from '../data/sedesData';
 import { COMPANY_DATA } from '../data/companyData';
+import { useSedes } from '../utils/sedesApi';
 
 interface WhatsAppModalProps {
   isOpen: boolean;
@@ -10,13 +11,14 @@ interface WhatsAppModalProps {
 }
 
 export function WhatsAppModal({ isOpen, onClose, initialSede }: WhatsAppModalProps) {
+  const { sedes } = useSedes();
   const [selectedSede, setSelectedSede] = useState<Sede | null>(initialSede || null);
   const [customMessage, setCustomMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   if (!isOpen) return null;
 
-  const filteredSedes = SEDES_DATA.filter((s) =>
+  const filteredSedes = sedes.filter((s) =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.city.toLowerCase().includes(searchTerm.toLowerCase())
   );

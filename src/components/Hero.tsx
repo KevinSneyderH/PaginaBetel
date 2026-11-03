@@ -1,12 +1,14 @@
 import { MapPin, ShoppingBag, Clock, Sparkles, Coffee, ShieldCheck, Sun } from 'lucide-react';
 import { assetPath } from '../utils/assetPath';
 import { COMPANY_DATA } from '../data/companyData';
+import { useSedes } from '../utils/sedesApi';
 
 interface HeroProps {
   onOpenWhatsApp: () => void;
 }
 
 export function Hero({ onOpenWhatsApp }: HeroProps) {
+  const { sedes } = useSedes();
   return (
     <section id="inicio" className="scroll-mt-20 relative overflow-hidden bg-gradient-to-b from-lime-50/50 via-white to-orange-50/30 pt-8 pb-16 lg:pt-14 lg:pb-24">
       {/* Background blur decorative blobs */}
@@ -41,7 +43,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-lime-600 hover:bg-lime-700 text-white font-black rounded-2xl shadow-lg shadow-lime-600/30 hover:shadow-lime-600/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
                 <MapPin className="w-5 h-5 text-white" />
-                <span>Ver nuestras 10 sedes</span>
+                <span>Ver nuestras {sedes.length} sedes</span>
               </a>
 
               <button
@@ -59,7 +61,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
                 <div className="p-1.5 rounded-lg bg-lime-100 text-lime-700">
                   <MapPin className="w-4 h-4" />
                 </div>
-                <span>10 sedes activas</span>
+                <span>{sedes.length} sedes activas</span>
               </div>
               <div className="flex items-center gap-2 text-slate-700 text-xs sm:text-sm font-semibold">
                 <div className="p-1.5 rounded-lg bg-orange-100 text-orange-600">

@@ -1,5 +1,6 @@
 import { Coffee, Croissant, UtensilsCrossed, Clock, MapPin, Sparkles } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
+import { useSedes } from '../utils/sedesApi';
 
 interface CafeteriaSectionProps {
   onOpenWhatsApp: () => void;
@@ -7,6 +8,15 @@ interface CafeteriaSectionProps {
 
 export function CafeteriaSection({ onOpenWhatsApp }: CafeteriaSectionProps) {
   const { cafeteria } = COMPANY_DATA;
+  const { sedes } = useSedes();
+  const sedesConCafeteria = sedes.filter((s) => s.hasCafeteria);
+  const branches = sedesConCafeteria.length > 0
+    ? sedesConCafeteria.map((s) => ({
+        name: s.name,
+        hours: s.cafeteriaHours || s.hours,
+        phone: s.phone,
+      }))
+    : cafeteria.branches;
 
   return (
     <section id="cafeterias" className="py-20 bg-amber-50/50 relative overflow-hidden">
@@ -82,7 +92,7 @@ export function CafeteriaSection({ onOpenWhatsApp }: CafeteriaSectionProps) {
                 Sedes Betel con Servicio de Cafetería
               </h3>
               <p className="text-xs sm:text-sm text-slate-500">
-                Disfruta de nuestros productos en cualquiera de estos 5 puntos
+                Disfruta de nuestros productos en cualquiera de nuestros {branches.length} puntos
               </p>
             </div>
             <button
@@ -94,7 +104,7 @@ export function CafeteriaSection({ onOpenWhatsApp }: CafeteriaSectionProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cafeteria.branches.map((b, i) => (
+            {branches.map((b, i) => (
               <div
                 key={i}
                 className="p-4 rounded-2xl bg-amber-50/60 hover:bg-amber-100/50 border border-amber-200/60 transition-all flex flex-col justify-between"

@@ -1,6 +1,6 @@
 import { ArrowUp } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
-import { SEDES_DATA } from '../data/sedesData';
+import { useSedes } from '../utils/sedesApi';
 import { assetPath } from '../utils/assetPath';
 
 interface FooterProps {
@@ -8,6 +8,7 @@ interface FooterProps {
 }
 
 export function Footer({ onOpenWhatsApp }: FooterProps) {
+  const { sedes } = useSedes();
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -102,7 +103,7 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
           {/* Sedes Directory */}
           <div className="lg:col-span-6 space-y-3">
             <h4 className="text-white font-bold text-sm tracking-wider uppercase flex items-center justify-between">
-              <span>Nuestras 10 sedes</span>
+              <span>Nuestras {sedes.length} sedes</span>
               <button
                 onClick={onOpenWhatsApp}
                 className="text-xs text-emerald-400 hover:underline capitalize cursor-pointer"
@@ -119,7 +120,7 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
               </a>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400">
-              {SEDES_DATA.map((sede) => (
+              {sedes.map((sede) => (
                 <div key={sede.id} className="p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
                   <div className="font-semibold text-slate-200">{sede.name}</div>
                   <div className="text-slate-400 text-[11px] truncate">{sede.address}</div>

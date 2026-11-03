@@ -10,7 +10,7 @@ import { AboutSection } from './components/AboutSection';
 import { SocialResponsibilitySection } from './components/SocialResponsibilitySection';
 import { CareersSection } from './components/CareersSection';
 import { Footer } from './components/Footer';
-import { FloatingWhatsAppButton } from './components/FloatingWhatsAppButton';
+import { FloatingChatWidget } from './components/chat/FloatingChatWidget';
 import { WhatsAppModal } from './components/WhatsAppModal';
 import { AnnouncementModal } from './components/AnnouncementModal';
 import type { Sede } from './data/sedesData';
@@ -68,7 +68,7 @@ export default function App() {
       <Footer onOpenWhatsApp={() => handleOpenWhatsApp()} />
 
       {/* Floating WhatsApp Action Button */}
-      <FloatingWhatsAppButton onClick={() => handleOpenWhatsApp()} />
+      <FloatingChatWidget onOpenWhatsApp={() => handleOpenWhatsApp()} />
 
       {/* WhatsApp Modal Dispatcher */}
       <WhatsAppModal

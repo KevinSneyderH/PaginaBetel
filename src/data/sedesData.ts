@@ -3,12 +3,13 @@ import { assetPath } from '../utils/assetPath';
 export interface Sede {
   id: string;
   name: string;
-  city: 'Cúcuta' | 'Los Patios' | 'Chinácota' | 'Villa del Rosario';
+  city: string;
   address: string;
   phone: string;
   hours: string;
   nightService?: string;
   hasCafeteria: boolean;
+  cafeteriaHours?: string;
   is24Hours: boolean;
   hasVentanilla: boolean;
   image: string;

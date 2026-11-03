@@ -1,32 +1,42 @@
 import { useState, useMemo } from 'react';
 import { Search, MapPin, Phone, MessageSquare, Clock, Coffee, Moon, Navigation } from 'lucide-react';
-import { SEDES_DATA } from '../data/sedesData';
 import { assetPath } from '../utils/assetPath';
+import { useSedes } from '../utils/sedesApi';
 
 export function SedesSection() {
+  const { sedes } = useSedes();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState<string>('Todas');
   const [filter24Hours, setFilter24Hours] = useState(false);
   const [filterVentanilla, setFilterVentanilla] = useState(false);
   const [filterCafeteria, setFilterCafeteria] = useState(false);
 
-  const cities = ['Todas', 'Cúcuta', 'Los Patios', 'Chinácota', 'Villa del Rosario'];
+  const cities = useMemo(() => {
+    const list = new Set<string>();
+    sedes.forEach((s) => {
+      if (s.city?.trim()) list.add(s.city.trim());
+    });
+    return ['Todas', ...Array.from(list)];
+  }, [sedes]);
 
   const filteredSedes = useMemo(() => {
-    return SEDES_DATA.filter((sede) => {
+    return sedes.filter((sede) => {
       const matchesSearch =
         sede.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sede.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sede.city.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCity = selectedCity === 'Todas' || sede.city === selectedCity;
+      const matchesCity = selectedCity === 'Todas' || sede.city.toLowerCase() === selectedCity.toLowerCase();
       const matches24h = !filter24Hours || sede.is24Hours;
       const matchesVentanilla = !filterVentanilla || sede.hasVentanilla;
       const matchesCafeteria = !filterCafeteria || sede.hasCafeteria;
 
       return matchesSearch && matchesCity && matches24h && matchesVentanilla && matchesCafeteria;
     });
-  }, [searchTerm, selectedCity, filter24Hours, filterVentanilla, filterCafeteria]);
+  }, [sedes, searchTerm, selectedCity, filter24Hours, filterVentanilla, filterCafeteria]);
+
+  const sedes24hCount = useMemo(() => sedes.filter((s) => s.is24Hours).length, [sedes]);
+  const sedesVentanillaCount = useMemo(() => sedes.filter((s) => s.hasVentanilla).length, [sedes]);
 
   return (
     <section id="sedes" className="py-20 bg-slate-50 relative">
@@ -42,7 +52,7 @@ export function SedesSection() {
             Encuentra tu Supermercado Betel más cercano
           </h2>
           <p className="text-slate-600 text-base sm:text-lg">
-            Estamos presentes en 10 puntos de la región: dos sedes 24 horas y siete con servicio de ventanilla.
+            Estamos presentes en {sedes.length} puntos de la región{sedes24hCount > 0 ? `: ${sedes24hCount} sede${sedes24hCount > 1 ? "s" : ""} 24 horas` : ""}{sedesVentanillaCount > 0 ? ` y ${sedesVentanillaCount} con servicio de ventanilla` : ""}.
           </p>
         </div>
 
@@ -82,7 +92,7 @@ export function SedesSection() {
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                   }`}
                 >
-                  {city} {city === 'Todas' && `(${SEDES_DATA.length})`}
+                  {city} {city === 'Todas' && `(${sedes.length})`}
                 </button>
               ))}
 
@@ -131,7 +141,7 @@ export function SedesSection() {
 
         {/* Results Counter */}
         <div className="flex items-center justify-between mb-6 text-sm text-slate-500 font-medium px-1">
-          <span>Mostrando {filteredSedes.length} de {SEDES_DATA.length} sedes</span>
+          <span>Mostrando {filteredSedes.length} de {sedes.length} sedes</span>
           {(searchTerm || selectedCity !== 'Todas' || filter24Hours || filterVentanilla || filterCafeteria) && (
             <button
               onClick={() => {
