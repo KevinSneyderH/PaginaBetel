@@ -1,23 +1,61 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowUp,
+  Briefcase,
   Check,
   CircleHelp,
   Copy,
+  ExternalLink,
   MapPin,
   Maximize2,
+  MessageCircle,
   Minimize2,
   Phone,
   RotateCcw,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
+  Tag,
   X,
 } from "lucide-react";
 import { assetPath } from "../../utils/assetPath";
 import { useSedes } from "../../utils/sedesApi";
 
+/**
+ * PISTA DE ACTIVACIÓN PQRS:
+ * Cuando el usuario indique "activa el pqrs ya dieron el visto bueno",
+ * cambiar ENABLE_PQRS_FLOW a true para habilitar la radicación y consulta
+ * de estado de PQRS paso a paso dentro del chatbot.
+ */
+export const ENABLE_PQRS_FLOW = false;
+
+const ATENCION_GENERAL_PHONE = "3176797058";
+const ATENCION_GENERAL_DISPLAY = "317 679 7058";
+const RRHH_WHATSAPP = "3175177648";
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+export interface ChatStoreAction {
+  nombre: string;
+  ciudad?: string;
+  direccion: string;
+  telefono: string;
+  horario?: string;
+  servicio_nocturno?: string | null;
+  tiene_cafeteria?: boolean;
+  horario_cafeteria?: string | null;
+  mapa_query?: string | null;
+}
+
+export type ChatIntent =
+  | "select_order_store"
+  | "order_store"
+  | "store_info"
+  | "stores_list"
+  | "pqrs_general"
+  | "vacantes"
+  | "general";
 
 export type ChatMessage = {
   id: string;
@@ -26,7 +64,9 @@ export type ChatMessage = {
   time: string;
   isRadicado?: boolean;
   radicadoCodigo?: string;
-  showOrderCta?: boolean;
+  intent?: ChatIntent;
+  stores?: ChatStoreAction[];
+  generalPhone?: string;
 };
 
 export type TipoCaso = "PETICION" | "QUEJA" | "RECLAMO" | "SUGERENCIA" | "ASESOR";
@@ -91,7 +131,7 @@ async function callPqrsChat(body: Record<string, unknown>) {
 const newMessage = (
   role: ChatMessage["role"],
   text: string,
-  extra?: { isRadicado?: boolean; radicadoCodigo?: string; showOrderCta?: boolean },
+  extra?: Partial<Omit<ChatMessage, "id" | "role" | "text" | "time">>,
 ): ChatMessage => ({
   id: createUuid(),
   role,
@@ -112,6 +152,43 @@ function isStatusLookupRequest(message: string) {
   return mentionsRequest && asksForProgress;
 }
 
+function buildGoogleMapsUrl(store: ChatStoreAction): string {
+  const query =
+    store.mapa_query?.trim() ||
+    `Supermercado Betel ${store.nombre}, ${store.direccion}, ${store.ciudad || "Cúcuta"}, Norte de Santander`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+function buildWhatsAppOrderUrl(phone: string, storeName?: string): string {
+  const cleanPhone = phone.replace(/\D/g, "");
+  const fullPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
+  const greeting = storeName
+    ? `Hola Supermercados Betel (${storeName}), quiero hacer un pedido a domicilio`
+    : "Hola Supermercados Betel, quiero hacer un pedido a domicilio";
+  return `https://wa.me/${fullPhone}?text=${encodeURIComponent(greeting)}`;
+}
+
+function buildWhatsAppGeneralUrl(phone = ATENCION_GENERAL_PHONE): string {
+  const cleanPhone = phone.replace(/\D/g, "");
+  const fullPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
+  const text = "Hola Atención General Betel, necesito información / presentar una solicitud o PQRS";
+  return `https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`;
+}
+
+function renderFormattedText(text: string): ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={idx} className="font-bold text-slate-900">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return <span key={idx}>{part}</span>;
+  });
+}
+
 interface BetelChatBoxProps {
   isWidget?: boolean;
   isExpanded?: boolean;
@@ -125,21 +202,35 @@ export default function BetelChatBox({
   isExpanded = false,
   onClose,
   onToggleExpand,
-  onOpenWhatsApp,
 }: BetelChatBoxProps) {
   const { sedes } = useSedes();
+
+  // Convertir las sedes del hook al formato de acción del chat
+  const sedesActions: ChatStoreAction[] = sedes.map((s) => ({
+    nombre: s.name,
+    ciudad: s.city,
+    direccion: s.address,
+    telefono: s.phone,
+    horario: s.hours,
+    servicio_nocturno: s.nightService,
+    tiene_cafeteria: s.hasCafeteria,
+    horario_cafeteria: s.cafeteriaHours,
+    mapa_query: s.mapQuery,
+  }));
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     newMessage(
       "assistant",
-      "¡Hola! Soy el asistente virtual de Supermercados Betel. Te puedo orientar con pedidos a domicilio, teléfonos, ubicación de nuestras sedes, horarios, o radicar una PQRS oficial. ¿En qué te puedo colaborar?",
+      "¡Hola! Soy el asistente virtual de **Supermercados Betel** 🛒.\n\nPuedo ayudarte a:\n• 🚚 **Pedir un domicilio** eligiendo tu sede para ir a WhatsApp\n• 📍 **Ver direcciones** y abrir nuestras sedes en **Google Maps**\n• 🏷️ Consultar **promociones, cafeterías, servicios, sostenibilidad y vacantes**\n• 📞 Comunicarte con **Atención General Betel y PQRS (317 679 7058)**\n\n¿En qué te puedo colaborar hoy?",
     ),
   ]);
   const [input, setInput] = useState("");
   const [session] = useState(createUuid);
   const [sending, setSending] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [selectingOrderStore, setSelectingOrderStore] = useState(false);
 
-  // Flujo PQRS guiado
+  // Flujo PQRS guiado (activo cuando ENABLE_PQRS_FLOW === true)
   const [showCaseForm, setShowCaseForm] = useState(false);
   const [caseType, setCaseType] = useState<TipoCaso>("PETICION");
   const [caseStep, setCaseStep] = useState<CaseStep | null>(null);
@@ -158,7 +249,7 @@ export default function BetelChatBox({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, sending, showCaseForm]);
+  }, [messages, sending, showCaseForm, selectingOrderStore]);
 
   const copyToClipboard = async (code: string) => {
     try {
@@ -173,11 +264,66 @@ export default function BetelChatBox({
   const resetChat = () => {
     setShowCaseForm(false);
     setCaseStep(null);
+    setSelectingOrderStore(false);
     setCaseData({ nombre: "", telefono: "", correo: "", tienda: "", descripcion: "" });
     setMessages([
       newMessage(
         "assistant",
-        "Conversación reiniciada. ¿En qué más puedo orientarte hoy? Puedes preguntar por pedidos, sedes o radicar una PQRS.",
+        "Conversación reiniciada. ¿En qué más puedo orientarte hoy? Puedes pedir un domicilio por sede, abrir direcciones en Google Maps o consultar sobre Supermercados Betel.",
+      ),
+    ]);
+  };
+
+  // Inicia el flujo interactivo "¿De qué sede quieres pedir tu domicilio?"
+  const startOrderFlow = () => {
+    setShowCaseForm(false);
+    setCaseStep(null);
+    setSelectingOrderStore(true);
+    setMessages((current) => [
+      ...current,
+      newMessage("user", "Quiero pedir un domicilio"),
+      newMessage(
+        "assistant",
+        "¡Con mucho gusto! 🚚 **¿De qué sede quieres pedir tu domicilio?**\n\nSelecciona tu sede a continuación para mostrarte su número directo y abrirlo en WhatsApp:",
+        {
+          intent: "select_order_store",
+          stores: sedesActions,
+          generalPhone: ATENCION_GENERAL_PHONE,
+        },
+      ),
+    ]);
+  };
+
+  // Cuando el usuario elige una sede para su domicilio
+  const handleSelectOrderStore = (store: ChatStoreAction) => {
+    setSelectingOrderStore(false);
+    setMessages((current) => [
+      ...current,
+      newMessage("user", `Sede ${store.nombre}`),
+      newMessage(
+        "assistant",
+        `¡Perfecto! 🚚 Para realizar tu pedido a domicilio en **Betel ${store.nombre}**, comunícate al número **${store.telefono}**.\n\n📍 **Dirección:** ${store.direccion}\n🕒 **Horario:** ${store.horario || "Habitual"}${store.servicio_nocturno ? `\n🌙 **${store.servicio_nocturno}**` : ""}\n\nToca el botón de abajo para abrir WhatsApp y hacer tu pedido:`,
+        {
+          intent: "order_store",
+          stores: [store],
+        },
+      ),
+    ]);
+  };
+
+  // Muestra directamente la tarjeta de Atención General Betel (317 679 7058) para PQRS
+  const showAtencionGeneralPqrs = () => {
+    setSelectingOrderStore(false);
+    setMessages((current) => [
+      ...current,
+      newMessage("user", "Atención al cliente / PQRS"),
+      newMessage(
+        "assistant",
+        `Para atender tus **Peticiones, Quejas, Reclamos, Sugerencias (PQRS)** o comunicarte con un asesor de servicio al cliente, escríbenos o llámanos a nuestra línea oficial:\n\n📞 **Atención General Betel**\n**Tel: ${ATENCION_GENERAL_DISPLAY}**\n\nToca cualquiera de los botones a continuación para abrirlo directamente:`,
+        {
+          intent: "pqrs_general",
+          generalPhone: ATENCION_GENERAL_PHONE,
+        },
       ),
     ]);
   };
@@ -188,16 +334,37 @@ export default function BetelChatBox({
     if (!text || sending) return;
 
     setInput("");
+
+    // Si estaba seleccionando sede de domicilio y escribe el nombre de una sede
+    if (selectingOrderStore) {
+      const norm = text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      const matched = sedesActions.find((s) => {
+        const sNorm = s.nombre
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+        return norm.includes(sNorm) || (sNorm === "ceiba 2" && /\bceiba\b/.test(norm));
+      });
+      if (matched) {
+        handleSelectOrderStore(matched);
+        return;
+      }
+      setSelectingOrderStore(false);
+    }
+
     setMessages((current) => [...current, newMessage("user", text)]);
 
-    // Si está en flujo interactivo paso a paso de PQRS
-    if (showCaseForm && caseStep) {
+    // Si está en flujo interactivo paso a paso de PQRS (cuando ENABLE_PQRS_FLOW === true)
+    if (ENABLE_PQRS_FLOW && showCaseForm && caseStep) {
       await answerCaseStep(text);
       return;
     }
 
-    // Si pregunta por consultar radicado en texto libre
-    if (isStatusLookupRequest(text)) {
+    // Si pregunta por consultar radicado en texto libre y el flujo PQRS está habilitado
+    if (ENABLE_PQRS_FLOW && isStatusLookupRequest(text)) {
       openStatusLookup();
       return;
     }
@@ -214,19 +381,71 @@ export default function BetelChatBox({
 
       if (typeof data?.reply !== "string" || !data.reply.trim()) throw new Error("Respuesta vacía");
 
-      const isOrderRelated = /\b(pedido|pedidos|domicilio|domicilios|whatsapp)\b/i.test(text);
+      const intent = (data.intent as ChatIntent) || "general";
+      const storesFromApi = Array.isArray(data.stores) && data.stores.length > 0 ? (data.stores as ChatStoreAction[]) : undefined;
+
+      if (intent === "select_order_store") {
+        setSelectingOrderStore(true);
+      }
+
       setMessages((current) => [
         ...current,
-        newMessage("assistant", data.reply.trim(), { showOrderCta: isOrderRelated && Boolean(onOpenWhatsApp) }),
+        newMessage("assistant", data.reply.trim(), {
+          intent,
+          stores: storesFromApi ?? (intent === "select_order_store" ? sedesActions : undefined),
+          generalPhone: data.generalPhone || ATENCION_GENERAL_PHONE,
+        }),
       ]);
     } catch {
-      setMessages((current) => [
-        ...current,
-        newMessage(
-          "assistant",
-          "No pude conectarme con el servicio en este instante. Si deseas hacer un pedido, puedes comunicarte al WhatsApp de tu sede o radicar una PQRS con los botones rápidos.",
-        ),
-      ]);
+      // Fallback local inteligente en caso de que no haya conexión momentánea
+      const norm = text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      const matchedStore = sedesActions.find((s) =>
+        norm.includes(s.nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()),
+      );
+
+      if (/\b(pqrs|queja|reclamo|peticion|sugerencia|asesor)\b/.test(norm)) {
+        setMessages((current) => [
+          ...current,
+          newMessage(
+            "assistant",
+            `Para atender tus PQRS o hablar con un asesor, comunícate con **Atención General Betel** al **Tel: ${ATENCION_GENERAL_DISPLAY}**:`,
+            { intent: "pqrs_general", generalPhone: ATENCION_GENERAL_PHONE },
+          ),
+        ]);
+      } else if (/\b(domicilio|pedido|pedir|comprar)\b/.test(norm)) {
+        if (matchedStore) {
+          setMessages((current) => [
+            ...current,
+            newMessage(
+              "assistant",
+              `Para pedir tu domicilio en **Betel ${matchedStore.nombre}**, comunícate al **${matchedStore.telefono}**:`,
+              { intent: "order_store", stores: [matchedStore] },
+            ),
+          ]);
+        } else {
+          setSelectingOrderStore(true);
+          setMessages((current) => [
+            ...current,
+            newMessage(
+              "assistant",
+              "¡Con mucho gusto! 🚚 **¿De qué sede quieres pedir tu domicilio?** Selecciona una sede a continuación:",
+              { intent: "select_order_store", stores: sedesActions },
+            ),
+          ]);
+        }
+      } else {
+        setMessages((current) => [
+          ...current,
+          newMessage(
+            "assistant",
+            `Aquí tienes nuestras sedes y la línea de **Atención General Betel (${ATENCION_GENERAL_DISPLAY})**:`,
+            { intent: "stores_list", stores: sedesActions, generalPhone: ATENCION_GENERAL_PHONE },
+          ),
+        ]);
+      }
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -234,6 +453,10 @@ export default function BetelChatBox({
   };
 
   const openCaseForm = (type: TipoCaso) => {
+    if (!ENABLE_PQRS_FLOW) {
+      showAtencionGeneralPqrs();
+      return;
+    }
     setCaseType(type);
     setCaseData({ nombre: "", telefono: "", correo: "", tienda: "", descripcion: "" });
     setShowCaseForm(true);
@@ -248,6 +471,10 @@ export default function BetelChatBox({
   };
 
   const openStatusLookup = () => {
+    if (!ENABLE_PQRS_FLOW) {
+      showAtencionGeneralPqrs();
+      return;
+    }
     setShowCaseForm(true);
     setCaseStep("status-code");
     setMessages((current) => [
@@ -274,10 +501,7 @@ export default function BetelChatBox({
         setCaseStep("type");
         setMessages((current) => [
           ...current,
-          newMessage(
-            "assistant",
-            "¡Perfecto! Selecciona qué tipo de trámite deseas realizar:",
-          ),
+          newMessage("assistant", "¡Perfecto! Selecciona qué tipo de trámite deseas realizar:"),
         ]);
       } else {
         setShowCaseForm(false);
@@ -306,10 +530,7 @@ export default function BetelChatBox({
       setCaseStep("name");
       setMessages((current) => [
         ...current,
-        newMessage(
-          "assistant",
-          `Trámite: ${elegido}. Por favor indícame tu nombre completo:`,
-        ),
+        newMessage("assistant", `Trámite: ${elegido}. Por favor indícame tu nombre completo:`),
       ]);
       return;
     }
@@ -531,17 +752,16 @@ export default function BetelChatBox({
                 Asistente Betel
               </h2>
               <span className="rounded-full bg-lime-400/20 px-1.5 py-0.5 text-[9px] font-bold text-lime-300">
-                Oficial
+                En línea
               </span>
             </div>
             <p className="text-[11px] font-medium text-emerald-200/80">
-              Pedidos, Sedes, PQRS y Atención
+              Domicilios, Sedes en Maps e Info Betel
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1">
-          {/* Botón de reiniciar chat */}
           <button
             type="button"
             onClick={resetChat}
@@ -552,7 +772,6 @@ export default function BetelChatBox({
             <RotateCcw size={15} />
           </button>
 
-          {/* Botón para expandir / contraer */}
           {onToggleExpand && (
             <button
               type="button"
@@ -565,7 +784,6 @@ export default function BetelChatBox({
             </button>
           )}
 
-          {/* Botón cerrar si es widget */}
           {isWidget && onClose && (
             <button
               type="button"
@@ -580,8 +798,8 @@ export default function BetelChatBox({
         </div>
       </header>
 
-      {/* Barra de progreso interactiva si está en radicación PQRS */}
-      {showCaseForm && caseStep && STEP_LABELS[caseStep] && (
+      {/* Barra de progreso interactiva si está en radicación PQRS (solo cuando ENABLE_PQRS_FLOW === true) */}
+      {ENABLE_PQRS_FLOW && showCaseForm && caseStep && STEP_LABELS[caseStep] && (
         <div className="border-b border-lime-100 bg-emerald-50/80 px-4 py-2">
           <div className="flex items-center justify-between text-[11px]">
             <span className="font-bold text-emerald-900">
@@ -611,7 +829,7 @@ export default function BetelChatBox({
       )}
 
       {/* Historial de Mensajes */}
-      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4 overscroll-contain">
+      <div ref={scrollRef} className="flex-1 space-y-3.5 overflow-y-auto p-4 overscroll-contain">
         {messages.map((message) => {
           const isUser = message.role === "user";
           return (
@@ -626,28 +844,189 @@ export default function BetelChatBox({
               )}
 
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-xs ${
+                className={`max-w-[88%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-xs ${
                   isUser
                     ? "rounded-br-xs bg-gradient-to-r from-emerald-700 to-emerald-800 text-white font-medium"
-                    : "rounded-bl-xs border border-slate-200/70 bg-white text-slate-800"
+                    : "rounded-bl-xs border border-slate-200/80 bg-white text-slate-700"
                 }`}
               >
-                <div className="whitespace-pre-line break-words">{message.text}</div>
+                <div className="whitespace-pre-line break-words">
+                  {isUser ? message.text : renderFormattedText(message.text)}
+                </div>
 
-                {/* Botón rápido para abrir WhatsApp si pregunta por pedidos */}
-                {message.showOrderCta && onOpenWhatsApp && (
-                  <div className="mt-3 pt-2.5 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={onOpenWhatsApp}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs font-bold px-3 py-1.5 shadow-sm transition active:scale-95"
-                    >
-                      <ShoppingBag size={14} /> Abrir lista de sedes y pedidos
-                    </button>
+                {/* 1. Tarjeta de Atención General Betel (317 679 7058) para PQRS y Atención al Cliente */}
+                {message.intent === "pqrs_general" && (
+                  <div className="mt-3 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/90 to-lime-50/50 p-3 text-slate-800">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                          Atención General Betel · PQRS
+                        </p>
+                        <p className="mt-0.5 font-mono text-sm font-black text-emerald-950">
+                          Tel: {ATENCION_GENERAL_DISPLAY}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-emerald-600/15 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                        Canal Oficial
+                      </span>
+                    </div>
+                    <div className="mt-2.5 flex flex-wrap gap-2">
+                      <a
+                        href={buildWhatsAppGeneralUrl(message.generalPhone || ATENCION_GENERAL_PHONE)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3 py-2 text-xs font-bold text-white shadow-sm transition active:scale-95"
+                      >
+                        <MessageCircle size={14} /> Abrir en WhatsApp
+                      </a>
+                      <a
+                        href={`tel:${message.generalPhone || ATENCION_GENERAL_PHONE}`}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900 transition active:scale-95"
+                      >
+                        <Phone size={14} /> Llamar
+                      </a>
+                    </div>
                   </div>
                 )}
 
-                {/* Tarjeta de Radicado Oficial */}
+                {/* 2. Selector de Sede para Pedir Domicilio */}
+                {message.intent === "select_order_store" && (
+                  <div className="mt-3 space-y-2 rounded-2xl border border-orange-200/80 bg-orange-50/50 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-orange-800">
+                      Elige tu sede para pedir domicilio:
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-0.5">
+                      {(message.stores && message.stores.length > 0 ? message.stores : sedesActions).map((st) => (
+                        <button
+                          key={st.nombre}
+                          type="button"
+                          onClick={() => handleSelectOrderStore(st)}
+                          className="flex flex-col items-start rounded-xl border border-orange-200/90 bg-white px-2.5 py-2 text-left transition hover:border-orange-500 hover:bg-orange-50 active:scale-95 shadow-2xs"
+                        >
+                          <span className="flex items-center gap-1 text-xs font-bold text-slate-900">
+                            <ShoppingBag size={11} className="text-orange-500 shrink-0" />
+                            <span className="truncate">{st.nombre}</span>
+                          </span>
+                          <span className="mt-0.5 text-[10px] font-mono text-slate-500">
+                            {st.telefono}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Tarjeta de Domicilio de una Sede Específica (WhatsApp + Google Maps) */}
+                {(message.intent === "order_store" || message.intent === "store_info") &&
+                  message.stores &&
+                  message.stores.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {message.stores.map((st) => (
+                        <div
+                          key={st.nombre}
+                          className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-3 shadow-xs"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-black text-emerald-950">
+                              Betel {st.nombre}
+                            </span>
+                            <span className="rounded-lg bg-emerald-100 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-900">
+                              {st.telefono}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[11px] text-slate-600">{st.direccion}</p>
+                          <div className="mt-2.5 flex flex-col gap-1.5 sm:flex-row">
+                            <a
+                              href={buildWhatsAppOrderUrl(st.telefono, st.nombre)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 px-3 py-2 text-xs font-bold text-white shadow-sm transition active:scale-95"
+                            >
+                              <MessageCircle size={14} /> Pedir por WhatsApp ({st.telefono})
+                            </a>
+                            <a
+                              href={buildGoogleMapsUrl(st)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:border-orange-400 hover:bg-orange-50 px-3 py-2 text-xs font-bold text-slate-800 transition active:scale-95"
+                            >
+                              <MapPin size={14} className="text-orange-500" /> Abrir en Maps
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                {/* 4. Lista interactiva de Sedes con botón directo a Google Maps y WhatsApp */}
+                {message.intent === "stores_list" && message.stores && message.stores.length > 0 && (
+                  <div className="mt-3 space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                    {message.stores.map((st) => (
+                      <div
+                        key={st.nombre}
+                        className="flex flex-col gap-1.5 rounded-xl border border-slate-200/90 bg-slate-50/70 p-2.5 text-xs"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-bold text-slate-900">
+                              {st.nombre}{" "}
+                              {st.ciudad && (
+                                <span className="font-normal text-[10px] text-slate-500">
+                                  ({st.ciudad})
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-[11px] text-slate-600 leading-snug">{st.direccion}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          <a
+                            href={buildGoogleMapsUrl(st)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 rounded-lg border border-orange-200 bg-white hover:bg-orange-50 px-2.5 py-1 text-[11px] font-bold text-orange-800 transition active:scale-95"
+                          >
+                            <MapPin size={12} className="text-orange-500" /> Abrir en Google Maps
+                            <ExternalLink size={10} />
+                          </a>
+                          <a
+                            href={buildWhatsAppOrderUrl(st.telefono, st.nombre)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 text-[11px] font-bold text-white transition active:scale-95"
+                          >
+                            <MessageCircle size={12} /> WhatsApp {st.telefono}
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 5. Botones rápidos para Vacantes / Trabaja con nosotros */}
+                {message.intent === "vacantes" && (
+                  <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-2.5">
+                    <a
+                      href={`https://wa.me/57${RRHH_WHATSAPP}?text=${encodeURIComponent("Hola Selección Betel, deseo enviar mi hoja de vida para postularme a una vacante")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition active:scale-95"
+                    >
+                      <MessageCircle size={13} /> WhatsApp RRHH (317 517 7648)
+                    </a>
+                    <a
+                      href="#trabaja-con-nosotros"
+                      onClick={() => {
+                        if (isWidget && onClose) onClose();
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-800 transition"
+                    >
+                      <Briefcase size={13} className="text-orange-500" /> Ver Vacantes en la Web
+                    </a>
+                  </div>
+                )}
+
+                {/* Tarjeta de Radicado Oficial (cuando ENABLE_PQRS_FLOW === true) */}
                 {message.isRadicado && message.radicadoCodigo && (
                   <div className="mt-3 overflow-hidden rounded-2xl border-2 border-dashed border-emerald-500 bg-emerald-50/70 p-3 text-slate-900">
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
@@ -702,14 +1081,13 @@ export default function BetelChatBox({
           </div>
         )}
 
-        {/* Chips de respuestas rápidas durante el flujo de caso */}
-        {showCaseForm && caseStep && (
+        {/* Chips de respuestas rápidas durante el flujo de caso PQRS (solo cuando ENABLE_PQRS_FLOW === true) */}
+        {ENABLE_PQRS_FLOW && showCaseForm && caseStep && (
           <div className="space-y-2 rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-xs">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Selecciona una opción:
             </p>
 
-            {/* Tipo de caso */}
             {caseStep === "type" && (
               <div className="flex flex-wrap gap-1.5">
                 {(["Petición", "Queja", "Reclamo", "Sugerencia", "Asesor"] as const).map((tipo) => (
@@ -725,7 +1103,6 @@ export default function BetelChatBox({
               </div>
             )}
 
-            {/* Selector de Tienda / Sede dinámico */}
             {caseStep === "store" && (
               <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
                 {sedes.map((s) => (
@@ -749,7 +1126,6 @@ export default function BetelChatBox({
               </div>
             )}
 
-            {/* Autorización / Confirmación */}
             {(caseStep === "initial-consent" || caseStep === "consent") && (
               <div className="flex gap-2">
                 <button
@@ -774,71 +1150,91 @@ export default function BetelChatBox({
 
       {/* Botones de acción rápida en el pie */}
       {!showCaseForm && (
-        <div className="border-t border-lime-100/70 bg-white/70 px-3 py-2">
+        <div className="border-t border-lime-100/70 bg-white/80 px-3 py-2">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-            {onOpenWhatsApp && (
+            <button
+              type="button"
+              onClick={startOrderFlow}
+              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-2.5 py-1.5 font-bold text-orange-900 transition hover:bg-orange-100 active:scale-95"
+            >
+              <ShoppingBag size={13} className="text-orange-600" /> Pedir Domicilio
+            </button>
+            <button
+              type="button"
+              onClick={() => void sendMessage(undefined, "¿Cuáles son las direcciones de las sedes para abrir en Google Maps?")}
+              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
+            >
+              <MapPin size={13} className="text-orange-500" /> Sedes y Mapas
+            </button>
+            <button
+              type="button"
+              onClick={() => void sendMessage(undefined, "¿Cuáles son las promociones de la semana?")}
+              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
+            >
+              <Tag size={13} className="text-emerald-700" /> Promociones
+            </button>
+            <button
+              type="button"
+              onClick={() => void sendMessage(undefined, "¿Qué servicios, cafeterías y vacantes tiene Supermercados Betel?")}
+              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
+            >
+              <Sparkles size={13} className="text-amber-500" /> Servicios y Cafeterías
+            </button>
+            {ENABLE_PQRS_FLOW ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => openCaseForm("PETICION")}
+                  className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-1.5 font-semibold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
+                >
+                  <CircleHelp size={13} /> Registrar PQRS
+                </button>
+                <button
+                  type="button"
+                  onClick={openStatusLookup}
+                  className="shrink-0 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
+                >
+                  Consultar radicado
+                </button>
+              </>
+            ) : (
               <button
                 type="button"
-                onClick={onOpenWhatsApp}
-                className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-2.5 py-1 font-bold text-orange-900 transition hover:bg-orange-100 active:scale-95"
+                onClick={showAtencionGeneralPqrs}
+                className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-1.5 font-semibold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
               >
-                <ShoppingBag size={13} className="text-orange-600" /> Pedir a Domicilio
+                <Phone size={13} className="text-emerald-700" /> Atención / PQRS ({ATENCION_GENERAL_DISPLAY})
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => void sendMessage(undefined, "¿Cuáles son los teléfonos y sedes de Betel?")}
-              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
-            >
-              <Phone size={13} className="text-emerald-700" /> Teléfonos & Sedes
-            </button>
-            <button
-              type="button"
-              onClick={() => void sendMessage(undefined, "¿Cuáles son los horarios de atención?")}
-              className="shrink-0 rounded-xl border border-slate-200 bg-white px-2.5 py-1 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
-            >
-              Horarios & 24H
-            </button>
-            <button
-              type="button"
-              onClick={openStatusLookup}
-              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-bold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
-            >
-              <CircleHelp size={13} className="text-emerald-700" /> Consultar Radicado
-            </button>
-            <button
-              type="button"
-              onClick={() => openCaseForm("PETICION")}
-              className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-bold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
-            >
-              Radicar PQRS
-            </button>
           </div>
         </div>
       )}
 
-      {/* Input de texto y envío */}
+      {/* Barra de entrada de texto */}
       <form
-        onSubmit={sendMessage}
-        className="flex items-center gap-2 border-t border-slate-200/80 bg-white p-3"
+        onSubmit={(e) => void sendMessage(e)}
+        className="flex shrink-0 items-center gap-2 border-t border-lime-200/60 bg-white p-3"
       >
         <input
           ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          disabled={sending}
           placeholder={
-            showCaseForm && caseStep
+            showCaseForm
               ? "Escribe tu respuesta aquí…"
-              : "Pregúntame sobre pedidos, sedes, horarios o PQRS…"
+              : selectingOrderStore
+                ? "Elige una sede arriba o escríbela…"
+                : "Pregunta por domicilios, sedes, promociones, cafeterías…"
           }
-          className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-600/15"
+          className="flex-1 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
         />
         <button
           type="submit"
           disabled={!input.trim() || sending}
           aria-label="Enviar mensaje"
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm transition hover:bg-emerald-800 disabled:opacity-40 active:scale-95 cursor-pointer"
+          className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-md transition hover:from-orange-600 hover:to-orange-700 disabled:opacity-40 active:scale-95"
         >
           <ArrowUp size={18} />
         </button>
