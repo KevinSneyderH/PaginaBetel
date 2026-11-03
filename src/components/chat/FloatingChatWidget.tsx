@@ -10,17 +10,51 @@ interface FloatingChatWidgetProps {
 export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [mobileViewportHeight, setMobileViewportHeight] = useState<number | null>(null);
 
+  // Escucha visualViewport para adaptar la altura en tiempo real cuando el teclado móvil sube/baja
   useEffect(() => {
-    if (!isOpen || !isExpanded) return;
+    if (typeof window === "undefined" || !window.visualViewport) return;
+
+    const handleViewportChange = () => {
+      if (window.innerWidth < 640 && window.visualViewport) {
+        setMobileViewportHeight(window.visualViewport.height);
+      } else {
+        setMobileViewportHeight(null);
+      }
+    };
+
+    handleViewportChange();
+    window.visualViewport.addEventListener("resize", handleViewportChange);
+    window.visualViewport.addEventListener("scroll", handleViewportChange);
+    window.addEventListener("resize", handleViewportChange);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", handleViewportChange);
+      window.visualViewport?.removeEventListener("scroll", handleViewportChange);
+      window.removeEventListener("resize", handleViewportChange);
+    };
+  }, []);
+
+  // Bloquear el scroll de fondo en móvil o cuando está expandido para evitar desplazamientos accidentales
+  useEffect(() => {
+    if (!isOpen) return;
     const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (window.innerWidth < 640 || isExpanded) {
+      document.body.style.overflow = "hidden";
+    }
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setIsExpanded(false);
+        if (isExpanded) {
+          setIsExpanded(false);
+        } else {
+          setIsOpen(false);
+        }
       }
     };
     window.addEventListener("keydown", onKeyDown);
+
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKeyDown);
@@ -43,10 +77,16 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
           <aside
             role="complementary"
             aria-label="Ventana de ayuda y atención Betel"
+            style={{
+              height:
+                mobileViewportHeight && !isExpanded
+                  ? `${mobileViewportHeight}px`
+                  : undefined,
+            }}
             className={
               isExpanded
-                ? "fixed inset-4 sm:inset-8 z-50 mx-auto my-auto w-[min(820px,calc(100vw-32px))] h-[min(720px,calc(100dvh-64px))] animate-in zoom-in-95 duration-200"
-                : "fixed bottom-[160px] sm:bottom-24 right-4 sm:right-6 left-4 sm:left-auto z-50 sm:w-[430px] h-[min(560px,calc(100dvh-180px))] animate-in zoom-in-95 fade-in duration-200"
+                ? "fixed inset-2 sm:inset-8 z-50 mx-auto my-auto w-[min(820px,calc(100vw-16px))] sm:w-[min(820px,calc(100vw-32px))] h-[min(720px,calc(100dvh-32px))] sm:h-[min(720px,calc(100dvh-64px))] animate-in zoom-in-95 duration-200"
+                : "fixed inset-x-0 bottom-0 top-0 sm:top-auto sm:inset-x-auto sm:bottom-24 sm:right-6 z-50 w-full sm:w-[430px] h-[100dvh] sm:h-[min(580px,calc(100dvh-130px))] animate-in zoom-in-95 fade-in duration-200"
             }
           >
             <BetelChatBox
@@ -68,7 +108,11 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
       )}
 
       {/* Botón flotante estilo Betel en la esquina inferior derecha */}
-      <div className="fixed bottom-24 right-5 sm:bottom-6 sm:right-6 z-30 flex items-center group">
+      <div
+        className={`fixed bottom-24 right-5 sm:bottom-6 sm:right-6 z-30 items-center group ${
+          isOpen ? "hidden sm:flex" : "flex"
+        }`}
+      >
         {/* Tooltip informativo al pasar el cursor */}
         {!isOpen && (
           <div className="hidden sm:block mr-3 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap border border-slate-800">
@@ -87,21 +131,25 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
           className="relative flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95 focus:outline-hidden"
         >
           {isOpen ? (
-            <div className="flex size-16 sm:size-16 items-center justify-center rounded-full bg-slate-900 text-white shadow-2xl shadow-slate-900/50 hover:bg-slate-800">
-              <X className="size-7 text-white" />
+            <div className="animate-betel-pop flex size-[72px] sm:size-[72px] items-center justify-center rounded-full bg-slate-900 text-white shadow-2xl shadow-slate-900/50 hover:bg-slate-800 transition-colors">
+              <X className="size-8 text-white" />
             </div>
           ) : (
-            <div className="relative flex size-[72px] sm:size-[72px] items-center justify-center">
+            <div className="animate-betel-pop relative flex size-20 sm:size-[84px] items-center justify-center">
               {/* Anillo con animación de pulso sutil */}
-              <span className="absolute inset-1.5 rounded-full bg-emerald-400/40 animate-ping pointer-events-none" />
-              <img
-                src={assetPath("/whatsapp_betel.png")}
-                onError={(e) => {
-                  e.currentTarget.src = assetPath("/wa.svg");
-                }}
-                alt="WhatsApp Betel"
-                className="size-full object-contain drop-shadow-xl select-none pointer-events-none"
-              />
+              <span className="absolute inset-2 rounded-full bg-emerald-400/40 animate-ping pointer-events-none" />
+
+              {/* Movimiento orgánico flotante cuando está en espera de acción */}
+              <div className="animate-betel-waiting size-full flex items-center justify-center">
+                <img
+                  src={assetPath("/whatsapp_betel.png")}
+                  onError={(e) => {
+                    e.currentTarget.src = assetPath("/wa.svg");
+                  }}
+                  alt="WhatsApp Betel"
+                  className="size-full object-contain drop-shadow-xl select-none pointer-events-none"
+                />
+              </div>
             </div>
           )}
         </button>
@@ -109,5 +157,5 @@ export function FloatingChatWidget({ onOpenWhatsApp }: FloatingChatWidgetProps) 
     </>
   );
 }
-export default FloatingChatWidget;
 
+export default FloatingChatWidget;

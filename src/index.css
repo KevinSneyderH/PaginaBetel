@@ -86,3 +86,45 @@
     scroll-behavior: auto;
   }
 }
+
+/* Animaciones para el botón flotante y asistente */
+@keyframes betel-float-waiting {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  15% {
+    transform: translateY(-5px) rotate(-3deg);
+  }
+  30% {
+    transform: translateY(-2px) rotate(3deg);
+  }
+  45% {
+    transform: translateY(-4px) rotate(-1.5deg);
+  }
+  60% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes betel-pop {
+  0% {
+    transform: scale(0.8) rotate(-70deg);
+    opacity: 0.7;
+  }
+  65% {
+    transform: scale(1.08) rotate(8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-betel-waiting {
+  animation: betel-float-waiting 4s ease-in-out infinite;
+}
+
+.animate-betel-pop {
+  animation: betel-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

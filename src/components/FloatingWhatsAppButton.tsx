@@ -19,16 +19,18 @@ export function FloatingWhatsAppButton({ onClick }: FloatingWhatsAppButtonProps)
         className="relative flex items-center justify-center size-[72px] sm:size-[72px] transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer focus:outline-hidden"
       >
         {/* Pulsing ring */}
-        <span className="absolute inset-1.5 rounded-full bg-emerald-400/40 animate-ping pointer-events-none"></span>
+          <span className="absolute inset-1.5 rounded-full bg-emerald-400/40 animate-ping pointer-events-none"></span>
 
-        <img
-          src={assetPath("/whatsapp_betel.png")}
-          onError={(e) => {
-            e.currentTarget.src = assetPath("/wa.svg");
-          }}
-          alt="WhatsApp Betel"
-          className="size-full object-contain drop-shadow-xl select-none pointer-events-none"
-        />
+        <div className="animate-betel-waiting size-full flex items-center justify-center">
+          <img
+            src={assetPath("/whatsapp_betel.png")}
+            onError={(e) => {
+              e.currentTarget.src = assetPath("/wa.svg");
+            }}
+            alt="WhatsApp Betel"
+            className="size-full object-contain drop-shadow-xl select-none pointer-events-none"
+          />
+        </div>
       </button>
     </div>
   );

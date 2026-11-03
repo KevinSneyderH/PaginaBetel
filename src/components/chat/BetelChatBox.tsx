@@ -197,6 +197,43 @@ interface BetelChatBoxProps {
   onOpenWhatsApp?: () => void;
 }
 
+const CHAT_STORAGE_KEY = "betel_chat_session_messages";
+const CHAT_SESSION_KEY = "betel_chat_session_id";
+
+function getInitialMessages(): ChatMessage[] {
+  try {
+    const saved = typeof window !== "undefined" ? sessionStorage.getItem(CHAT_STORAGE_KEY) : null;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return [
+    newMessage(
+      "assistant",
+      "¡Hola! Soy el asistente virtual de **Supermercados Betel** 🛒.\n\nPuedo ayudarte a:\n• 🚚 **Pedir un domicilio** eligiendo tu sede para ir a WhatsApp\n• 📍 **Ver direcciones** y abrir nuestras sedes en **Google Maps**\n• 🏷️ Consultar **promociones, cafeterías, servicios, sostenibilidad y vacantes**\n• 📞 Comunicarte con **Atención General Betel y PQRS (317 679 7058)**\n\n¿En qué te puedo colaborar hoy?",
+    ),
+  ];
+}
+
+function getInitialSession(): string {
+  try {
+    const saved = typeof window !== "undefined" ? sessionStorage.getItem(CHAT_SESSION_KEY) : null;
+    if (saved) return saved;
+    const newId = createUuid();
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(CHAT_SESSION_KEY, newId);
+    }
+    return newId;
+  } catch {
+    return createUuid();
+  }
+}
+
 export default function BetelChatBox({
   isWidget = false,
   isExpanded = false,
@@ -218,17 +255,21 @@ export default function BetelChatBox({
     mapa_query: s.mapQuery,
   }));
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    newMessage(
-      "assistant",
-      "¡Hola! Soy el asistente virtual de **Supermercados Betel** 🛒.\n\nPuedo ayudarte a:\n• 🚚 **Pedir un domicilio** eligiendo tu sede para ir a WhatsApp\n• 📍 **Ver direcciones** y abrir nuestras sedes en **Google Maps**\n• 🏷️ Consultar **promociones, cafeterías, servicios, sostenibilidad y vacantes**\n• 📞 Comunicarte con **Atención General Betel y PQRS (317 679 7058)**\n\n¿En qué te puedo colaborar hoy?",
-    ),
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
   const [input, setInput] = useState("");
-  const [session] = useState(createUuid);
+  const [session] = useState<string>(getInitialSession);
   const [sending, setSending] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectingOrderStore, setSelectingOrderStore] = useState(false);
+
+  // Guardar mensajes en sessionStorage cada vez que cambien para mantener la conversación activa
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    } catch {
+      // noop
+    }
+  }, [messages]);
 
   // Flujo PQRS guiado (activo cuando ENABLE_PQRS_FLOW === true)
   const [showCaseForm, setShowCaseForm] = useState(false);
@@ -251,6 +292,20 @@ export default function BetelChatBox({
     }
   }, [messages, sending, showCaseForm, selectingOrderStore]);
 
+  // Asegura que en móvil al abrir el teclado el scroll se mantenga en el último mensaje
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const onViewportResize = () => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    };
+    window.visualViewport.addEventListener("resize", onViewportResize);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", onViewportResize);
+    };
+  }, []);
+
   const copyToClipboard = async (code: string) => {
     try {
       await navigator.clipboard.writeText(code);
@@ -266,12 +321,20 @@ export default function BetelChatBox({
     setCaseStep(null);
     setSelectingOrderStore(false);
     setCaseData({ nombre: "", telefono: "", correo: "", tienda: "", descripcion: "" });
-    setMessages([
+    const freshMessages = [
       newMessage(
         "assistant",
         "Conversación reiniciada. ¿En qué más puedo orientarte hoy? Puedes pedir un domicilio por sede, abrir direcciones en Google Maps o consultar sobre Supermercados Betel.",
       ),
-    ]);
+    ];
+    setMessages(freshMessages);
+    try {
+      sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(freshMessages));
+      const freshId = createUuid();
+      sessionStorage.setItem(CHAT_SESSION_KEY, freshId);
+    } catch {
+      // noop
+    }
   };
 
   // Inicia el flujo interactivo "¿De qué sede quieres pedir tu domicilio?"
@@ -734,7 +797,7 @@ export default function BetelChatBox({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-lime-200/80 bg-[#fffdf8] shadow-2xl">
+    <div className="flex h-full flex-col overflow-hidden rounded-none sm:rounded-3xl border-0 sm:border border-lime-200/80 bg-[#fffdf8] shadow-2xl">
       {/* Encabezado Verde Bosque Institucional */}
       <header className="relative flex shrink-0 items-center justify-between border-b border-lime-500/20 bg-gradient-to-r from-emerald-950 via-[#12351d] to-[#092b17] px-4 py-3 text-white shadow-md">
         <div className="flex items-center gap-2.5">
@@ -1224,6 +1287,13 @@ export default function BetelChatBox({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onFocus={() => {
+            setTimeout(() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+              }
+            }, 120);
+          }}
           disabled={sending}
           placeholder={
             showCaseForm
