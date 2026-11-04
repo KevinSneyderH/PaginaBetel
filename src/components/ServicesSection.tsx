@@ -85,8 +85,8 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-200 text-lime-900 text-xs font-bold uppercase tracking-wider mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-12" data-reveal="fade-up">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-200 text-lime-900 text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-lime-700" />
             Servicios & Beneficios Exclusivos
           </div>
@@ -99,7 +99,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
         </div>
 
         {/* Interactive Selector Tabs */}
-        <div className="mb-10 w-full">
+        <div className="mb-10 w-full" data-reveal="fade-up" style={{ '--delay': '100ms' } as React.CSSProperties}>
           <div className="grid w-full grid-cols-2 lg:grid-cols-4 p-1.5 bg-white rounded-2xl border border-slate-200 shadow-sm gap-1.5">
             {services.map((s) => {
               const isSelected = s.id === activeTab;
@@ -113,7 +113,9 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  {s.icon}
+                  <span className={`transition-transform duration-300 ${isSelected ? 'scale-110' : ''}`}>
+                    {s.icon}
+                  </span>
                   <span className="min-w-0">{s.name}</span>
                   <span
                     className={`hidden xl:inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap ${
@@ -131,8 +133,12 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
         </div>
 
         {/* Full-width Uncropped Banner Showcase */}
-        <div className="min-w-0 bg-white rounded-3xl p-4 sm:p-8 shadow-xl border border-slate-200/90 transition-all">
-          <div className="space-y-6">
+        <div
+          className="min-w-0 bg-white rounded-3xl p-4 sm:p-8 shadow-xl border border-slate-200/90 transition-all hover:shadow-2xl"
+          data-reveal="fade-up"
+          style={{ '--delay': '180ms' } as React.CSSProperties}
+        >
+          <div key={currentService.id} className="space-y-6 animate-betel-tab-swap">
             
             {/* El servicio nocturno usa una imagen panorámica para darle mayor presencia. */}
             <div className="relative rounded-2xl overflow-hidden shadow-md border border-slate-200 bg-slate-100 group">
@@ -180,7 +186,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 text-sm cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 text-sm cursor-pointer animate-betel-shimmer"
                   >
                     <ShoppingBag className="w-4 h-4" />
                     <span>{currentService.actionText}</span>
@@ -196,7 +202,7 @@ export function ServicesSection({ onOpenWhatsApp }: ServicesSectionProps) {
                 ) : (
                   <button
                     onClick={onOpenWhatsApp}
-                    className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 text-sm cursor-pointer"
+                    className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 text-sm cursor-pointer animate-betel-shimmer"
                   >
                     <ShoppingBag className="w-4 h-4" />
                     <span>{currentService.actionText}</span>

@@ -128,3 +128,208 @@
 .animate-betel-pop {
   animation: betel-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ==========================================================================
+   Sistema de Animaciones UX/UI Profesionales Betel
+   ========================================================================== */
+
+/* 1. Scroll Reveal (Aparición fluida con aceleración cúbica de alta gama) */
+[data-reveal] {
+  opacity: 0;
+  transition-property: opacity, transform, filter;
+  transition-duration: 0.75s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--delay, 0ms);
+  will-change: opacity, transform;
+}
+
+[data-reveal="fade-up"],
+[data-reveal]:not([data-reveal="fade-left"]):not([data-reveal="fade-right"]):not([data-reveal="scale-up"]) {
+  transform: translateY(28px);
+}
+
+[data-reveal="fade-left"] {
+  transform: translateX(-32px);
+}
+
+[data-reveal="fade-right"] {
+  transform: translateX(32px);
+}
+
+[data-reveal="scale-up"] {
+  transform: scale(0.94) translateY(16px);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+  filter: blur(0);
+}
+
+/* 2. Keyframes temáticos contextuales */
+
+/* Levitación suave continua para badges del Hero */
+@keyframes betel-float-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes betel-float-delayed {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-betel-float-slow {
+  animation: betel-float-slow 4.5s ease-in-out infinite;
+}
+
+.animate-betel-float-delayed {
+  animation: betel-float-delayed 5.2s ease-in-out infinite 0.8s;
+}
+
+/* Pulsación ambiental para fondos luminosos */
+@keyframes betel-ambient-blob {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.08) translate(12px, -12px);
+    opacity: 0.6;
+  }
+}
+
+.animate-betel-blob {
+  animation: betel-ambient-blob 9s ease-in-out infinite;
+}
+
+.animate-betel-blob-alt {
+  animation: betel-ambient-blob 11s ease-in-out infinite reverse 2s;
+}
+
+/* Transición limpia al cambiar de pestaña o día */
+@keyframes betel-tab-swap {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-betel-tab-swap {
+  animation: betel-tab-swap 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Destello sutil para botones destacados de llamada a la acción */
+@keyframes betel-shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+.animate-betel-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-betel-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 100%
+  );
+  transform: translateX(-150%) skewX(-20deg);
+  animation: betel-shimmer 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+/* Rotación suave para el ícono de Energía Solar */
+@keyframes betel-sun-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-betel-sun {
+  animation: betel-sun-rotate 28s linear infinite;
+}
+
+/* Giro orgánico para el ícono de Economía Circular */
+@keyframes betel-recycle-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.08) rotate(15deg);
+  }
+}
+
+.animate-betel-recycle {
+  animation: betel-recycle-pulse 5s ease-in-out infinite;
+}
+
+/* Calidez suave para cafetería */
+@keyframes betel-steam {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-2px) scale(1.05);
+    opacity: 1;
+  }
+}
+
+.animate-betel-steam {
+  animation: betel-steam 3s ease-in-out infinite;
+}
+
+/* 3. Accesibilidad: Reducción de movimiento para usuarios que lo prefieran */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .animate-betel-float-slow,
+  .animate-betel-float-delayed,
+  .animate-betel-blob,
+  .animate-betel-blob-alt,
+  .animate-betel-tab-swap,
+  .animate-betel-sun,
+  .animate-betel-recycle,
+  .animate-betel-steam,
+  .animate-betel-waiting {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .animate-betel-shimmer::after {
+    display: none !important;
+  }
+}

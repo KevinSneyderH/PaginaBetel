@@ -75,7 +75,7 @@ export function PromotionsSection({ onOpenWhatsApp, onInitialLoad }: PromotionsS
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12" data-reveal="fade-up">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100 border border-orange-200 text-orange-900 text-xs font-bold uppercase tracking-wider mb-3">
             <Tag className="w-3.5 h-3.5 text-orange-600" />
             Ahorro Diario Garantizado
@@ -89,8 +89,8 @@ export function PromotionsSection({ onOpenWhatsApp, onInitialLoad }: PromotionsS
         </div>
 
         {/* Days Selector Tabs */}
-        <div className="mb-6 sm:mb-10 w-full">
-          <div className="grid w-full max-w-4xl grid-cols-5 mx-auto p-1 bg-slate-100/90 rounded-2xl border border-slate-200 gap-1 sm:p-1.5 sm:gap-1.5">
+        <div className="mb-6 sm:mb-10 w-full" data-reveal="fade-up" style={{ '--delay': '100ms' } as React.CSSProperties}>
+          <div className="grid w-full max-w-4xl grid-cols-5 mx-auto p-1 bg-slate-100/90 rounded-2xl border border-slate-200 gap-1 sm:p-1.5 sm:gap-1.5 shadow-xs">
             {PROMOS_DATA.map((promo) => {
               const isSelected = promo.id === selectedDayId;
               return (
@@ -112,8 +112,12 @@ export function PromotionsSection({ onOpenWhatsApp, onInitialLoad }: PromotionsS
         </div>
 
         {/* Active Promotion Showcase Card */}
-        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 text-white shadow-2xl border border-slate-800">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+        <div
+          className="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 text-white shadow-2xl border border-slate-800"
+          data-reveal="fade-up"
+          style={{ '--delay': '180ms' } as React.CSSProperties}
+        >
+          <div key={activePromo.id} className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center animate-betel-tab-swap">
             
             {/* Promo Text Details */}
             <div className="lg:col-span-5 space-y-4 sm:space-y-6 order-2 lg:order-1">
@@ -146,7 +150,7 @@ export function PromotionsSection({ onOpenWhatsApp, onInitialLoad }: PromotionsS
               <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
                 <button
                   onClick={onOpenWhatsApp}
-                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 sm:px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:scale-105 active:scale-95 cursor-pointer text-sm"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 sm:px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 transition-all hover:scale-105 active:scale-95 cursor-pointer text-sm animate-betel-shimmer"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>Pedir Ofertas de {activePromo.dayName}</span>

@@ -13,17 +13,17 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
     <section id="inicio" className="scroll-mt-20 relative overflow-hidden bg-gradient-to-b from-lime-50/50 via-white to-orange-50/30 pt-8 pb-16 lg:pt-14 lg:pb-24">
       {/* Background blur decorative blobs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden pointer-events-none -z-10">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-lime-200/40 rounded-full blur-3xl"></div>
-        <div className="absolute top-40 -right-20 w-96 h-96 bg-orange-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-lime-200/40 rounded-full blur-3xl animate-betel-blob"></div>
+        <div className="absolute top-40 -right-20 w-96 h-96 bg-orange-200/30 rounded-full blur-3xl animate-betel-blob-alt"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left Column: Headline & Value Prop */}
-          <div className="lg:col-span-7 text-center lg:text-left">
+          <div className="lg:col-span-7 text-center lg:text-left" data-reveal="fade-right">
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-300/80 text-lime-900 text-xs sm:text-sm font-bold mb-6 shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-300/80 text-lime-900 text-xs sm:text-sm font-bold mb-6 shadow-sm hover:scale-[1.02] transition-transform">
               <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
               <span>{COMPANY_DATA.years} años al servicio de Norte de Santander</span>
             </div>
@@ -48,7 +48,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
 
               <button
                 onClick={onOpenWhatsApp}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer animate-betel-shimmer"
               >
                 <ShoppingBag className="w-5 h-5" />
                 <span>Pedir Domicilio</span>
@@ -85,7 +85,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
           </div>
 
           {/* Right Column: Hero Visual Card */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative" data-reveal="fade-left">
             <div className="relative mx-auto max-w-md lg:max-w-none">
               
               {/* Main Card with Official Assets */}
@@ -114,7 +114,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
               </div>
 
               {/* Floating Stat Badge 1 */}
-              <div className="absolute -top-4 -left-4 sm:-left-6 bg-white rounded-2xl shadow-xl p-3.5 border border-slate-100 flex items-center gap-3 animate-bounce [animation-duration:4s]">
+              <div className="absolute -top-4 -left-4 sm:-left-6 bg-white rounded-2xl shadow-xl p-3.5 border border-slate-100 flex items-center gap-3 animate-betel-float-slow transition-transform hover:scale-105">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-lime-500 to-emerald-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-lime-500/30">
                   {COMPANY_DATA.years}
                 </div>
@@ -125,7 +125,7 @@ export function Hero({ onOpenWhatsApp }: HeroProps) {
               </div>
 
               {/* Floating Stat Badge 2 */}
-              <div className="absolute -bottom-5 -right-3 sm:-right-5 bg-white rounded-2xl shadow-xl p-3.5 border border-slate-100 flex items-center gap-3">
+              <div className="absolute -bottom-5 -right-3 sm:-right-5 bg-white rounded-2xl shadow-xl p-3.5 border border-slate-100 flex items-center gap-3 animate-betel-float-delayed transition-transform hover:scale-105">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-md shadow-orange-500/30">
                   <ShieldCheck className="w-5 h-5" />
                 </div>

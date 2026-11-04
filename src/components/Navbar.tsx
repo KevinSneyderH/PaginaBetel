@@ -9,11 +9,15 @@ interface NavbarProps {
 
 export function Navbar({ onOpenWhatsApp }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
+      setScrollProgress(Math.min(100, Math.max(0, progress)));
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -163,7 +167,7 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
             <div className="hidden sm:flex items-center gap-3 shrink-0 lg:ml-4 xl:ml-6">
               <button
                 onClick={() => onOpenWhatsApp()}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer xl:px-5"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer xl:px-5 animate-betel-shimmer"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Pedir Domicilio</span>
@@ -236,6 +240,13 @@ export function Navbar({ onOpenWhatsApp }: NavbarProps) {
             </nav>
           </div>
         )}
+        {/* Barra de progreso de lectura sutil */}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-transparent overflow-hidden pointer-events-none">
+          <div
+            className="h-full bg-gradient-to-r from-lime-500 via-emerald-500 to-orange-500 transition-all duration-150"
+            style={{ width: `${scrollProgress}%` }}
+          />
+        </div>
       </header>
     </>
   );

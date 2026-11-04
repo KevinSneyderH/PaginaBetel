@@ -43,7 +43,7 @@ export function SedesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-12" data-reveal="fade-up">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-200 text-lime-900 text-xs font-bold uppercase tracking-wider mb-3">
             <MapPin className="w-3.5 h-3.5 text-orange-500" />
             Nuestra Red en Norte de Santander
@@ -57,7 +57,11 @@ export function SedesSection() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-4 sm:p-6 mb-10">
+        <div
+          className="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-4 sm:p-6 mb-10 transition-shadow hover:shadow-md"
+          data-reveal="fade-up"
+          style={{ '--delay': '120ms' } as React.CSSProperties}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
             
             {/* Search Input */}
@@ -161,10 +165,12 @@ export function SedesSection() {
         {/* Sedes Grid */}
         {filteredSedes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSedes.map((sede) => (
+            {filteredSedes.map((sede, index) => (
               <div
                 key={sede.id}
-                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/90 transition-all duration-300 flex flex-col group hover:-translate-y-1"
+                data-reveal="fade-up"
+                style={{ '--delay': `${(index % 6) * 75}ms` } as React.CSSProperties}
+                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-200/90 transition-all duration-300 flex flex-col group hover:-translate-y-1.5"
               >
                 {/* Sede Image with Badges */}
                 <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-100">

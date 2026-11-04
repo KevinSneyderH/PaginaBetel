@@ -13,9 +13,11 @@ import { Footer } from './components/Footer';
 import { FloatingChatWidget } from './components/chat/FloatingChatWidget';
 import { WhatsAppModal } from './components/WhatsAppModal';
 import { AnnouncementModal } from './components/AnnouncementModal';
+import { useScrollReveal } from './utils/useScrollReveal';
 import type { Sede } from './data/sedesData';
 
 export default function App() {
+  useScrollReveal();
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [initialSedeForWhatsApp, setInitialSedeForWhatsApp] = useState<Sede | null>(null);
 

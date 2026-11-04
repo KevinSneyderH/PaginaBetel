@@ -27,8 +27,8 @@ export function CafeteriaSection({ onOpenWhatsApp }: CafeteriaSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wider mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-14" data-reveal="fade-up">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
             <Coffee className="w-3.5 h-3.5 text-amber-700" />
             Punto de Encuentro y Descanso
           </div>
@@ -42,49 +42,69 @@ export function CafeteriaSection({ onOpenWhatsApp }: CafeteriaSectionProps) {
 
         {/* Feature Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
-          <div className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-              <Coffee className="w-6 h-6" />
+          <div
+            data-reveal="fade-up"
+            style={{ '--delay': '0ms' } as React.CSSProperties}
+            className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group flex items-start gap-4"
+          >
+            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-200 transition-all">
+              <Coffee className="w-6 h-6 group-hover:animate-betel-steam" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-sm mb-1">Café Seleccionado</h4>
+              <h4 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-amber-800 transition-colors">Café Seleccionado</h4>
               <p className="text-xs text-slate-600">Café de origen colombiano recién colado para comenzar tu jornada con la mejor energía.</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-              <Croissant className="w-6 h-6" />
+          <div
+            data-reveal="fade-up"
+            style={{ '--delay': '80ms' } as React.CSSProperties}
+            className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group flex items-start gap-4"
+          >
+            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-200 transition-all">
+              <Croissant className="w-6 h-6 group-hover:rotate-6 transition-transform" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-sm mb-1">Panadería Caliente</h4>
+              <h4 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-amber-800 transition-colors">Panadería Caliente</h4>
               <p className="text-xs text-slate-600">Pan fresco, pasteles de pollo, empanadas y delicias horneadas continuamente durante el día.</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-              <UtensilsCrossed className="w-6 h-6" />
+          <div
+            data-reveal="fade-up"
+            style={{ '--delay': '160ms' } as React.CSSProperties}
+            className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group flex items-start gap-4"
+          >
+            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-200 transition-all">
+              <UtensilsCrossed className="w-6 h-6 group-hover:scale-110 transition-transform" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-sm mb-1">Desayunos & Combos</h4>
+              <h4 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-amber-800 transition-colors">Desayunos & Combos</h4>
               <p className="text-xs text-slate-600">Desayunos completos, jugos 100% naturales y comidas rápidas preparadas al momento.</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-              <Sparkles className="w-6 h-6" />
+          <div
+            data-reveal="fade-up"
+            style={{ '--delay': '240ms' } as React.CSSProperties}
+            className="bg-white rounded-2xl p-5 border border-amber-200/70 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group flex items-start gap-4"
+          >
+            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-200 transition-all">
+              <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-sm mb-1">Ambiente Agradable</h4>
+              <h4 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-amber-800 transition-colors">Ambiente Agradable</h4>
               <p className="text-xs text-slate-600">Espacios limpios y confortables diseñados para disfrutar con tu familia o amigos.</p>
             </div>
           </div>
         </div>
 
         {/* Cafeteria Branches List */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-amber-200/80 shadow-md">
+        <div
+          className="bg-white rounded-3xl p-6 sm:p-8 border border-amber-200/80 shadow-md transition-shadow hover:shadow-lg"
+          data-reveal="fade-up"
+          style={{ '--delay': '200ms' } as React.CSSProperties}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
             <div>
               <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">

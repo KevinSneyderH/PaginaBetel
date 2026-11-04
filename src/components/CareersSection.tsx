@@ -199,7 +199,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7" data-reveal="fade-right">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lime-200 bg-white/80 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800 shadow-xs">
               <BriefcaseBusiness className="h-4 w-4 text-orange-500" />
               Oportunidades Betel
@@ -234,7 +234,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
             </div>
           </div>
 
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5" data-reveal="fade-left">
             <div className="rounded-3xl border border-lime-100 bg-white p-6 shadow-xl shadow-emerald-950/5 sm:p-8">
               <div className="mb-6 flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-lime-100 text-emerald-800">
@@ -272,7 +272,7 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
         </div>
 
         <div className="mt-16">
-          <div className="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div className="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end" data-reveal="fade-up">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
                 Únete al equipo
@@ -326,12 +326,14 @@ export function CareersSection({ onInitialLoad }: { onInitialLoad?: () => void }
 
           {!loading && !error && vacancies.length > 0 && (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {vacancies.map((vacancy) => {
+              {vacancies.map((vacancy, index) => {
                 const title = vacancy.titulo || vacancy.cargo;
 
                 return (
                   <article
                     key={vacancy.id_vacante}
+                    data-reveal="fade-up"
+                    style={{ '--delay': `${(index % 6) * 75}ms` } as React.CSSProperties}
                     className="group relative flex flex-col overflow-hidden rounded-3xl border border-lime-200/80 bg-white shadow-md shadow-emerald-950/5 transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/10"
                   >
                     {/* Header visual: Afiche o Banner ilustrado */}

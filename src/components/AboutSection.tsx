@@ -93,8 +93,8 @@ export function AboutSection() {
     <section id="nosotros" className="py-20 bg-slate-50 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-200 text-lime-900 text-xs font-bold uppercase tracking-wider mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-16" data-reveal="fade-up">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime-100 border border-lime-200 text-lime-900 text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
             <Building2 className="w-3.5 h-3.5 text-lime-700" />
             Nuestra Historia & Compromiso
           </div>
@@ -104,7 +104,11 @@ export function AboutSection() {
         </div>
 
         {/* About, Mission & Vision Tabs Card */}
-        <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200/80 mb-16">
+        <div
+          className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200/80 mb-16 transition-shadow hover:shadow-md"
+          data-reveal="fade-up"
+          style={{ '--delay': '120ms' } as React.CSSProperties}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             {/* Left Column: Interactive Switcher */}
@@ -145,9 +149,9 @@ export function AboutSection() {
                 </button>
               </div>
 
-              <div className="min-h-[140px] flex items-center">
+              <div key={activeTab} className="min-h-[140px] flex items-center animate-betel-tab-swap">
                 {activeTab === 'quienes' ? (
-                  <div className="animate-in fade-in duration-300">
+                  <div>
                     <h3 className="text-2xl font-black text-slate-900 mb-3 flex items-center gap-2">
                       <Building2 className="w-6 h-6 text-lime-600" />
                       ¿Quiénes Somos?
@@ -159,7 +163,7 @@ export function AboutSection() {
                     </div>
                   </div>
                 ) : activeTab === 'mision' ? (
-                  <div className="animate-in fade-in duration-300">
+                  <div>
                     <h3 className="text-2xl font-black text-slate-900 mb-3 flex items-center gap-2">
                       <Target className="w-6 h-6 text-lime-600" />
                       Misión Institucional
@@ -169,7 +173,7 @@ export function AboutSection() {
                     </p>
                   </div>
                 ) : (
-                  <div className="animate-in fade-in duration-300">
+                  <div>
                     <h3 className="text-2xl font-black text-slate-900 mb-3 flex items-center gap-2">
                       <Eye className="w-6 h-6 text-orange-500" />
                       Visión Hacia el Futuro
@@ -222,21 +226,23 @@ export function AboutSection() {
         </div>
 
         {/* Corporate Values */}
-        <div>
+        <div data-reveal="fade-up">
           <h3 className="text-2xl font-black text-slate-900 text-center mb-8">
             Nuestros Valores Corporativos
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {valoresCorporativos.map((val) => (
+            {valoresCorporativos.map((val, index) => (
               <div
                 key={val.id}
-                className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                data-reveal="fade-up"
+                style={{ '--delay': `${(index % 6) * 75}ms` } as React.CSSProperties}
+                className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between group"
               >
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-lime-50 transition-all">
                     {valueIcons[val.icon] || <CheckCircle2 className="w-5 h-5 text-lime-600" />}
                   </div>
-                  <h4 className="text-base font-bold text-slate-900 mb-2">{val.title}</h4>
+                  <h4 className="text-base font-bold text-slate-900 mb-2 group-hover:text-emerald-800 transition-colors">{val.title}</h4>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{val.desc}</p>
                 </div>
               </div>

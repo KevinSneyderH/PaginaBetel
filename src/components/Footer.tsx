@@ -18,7 +18,7 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80" data-reveal="fade-up">
           
           {/* Brand Info */}
           <div className="lg:col-span-4 space-y-4">
