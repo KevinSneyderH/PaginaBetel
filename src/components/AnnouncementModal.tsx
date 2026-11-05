@@ -79,6 +79,10 @@ export function AnnouncementModal({ visible }: { visible: boolean }) {
   const desktopImage = announcement.desktop ?? announcement.mobile;
   const mobileImage = announcement.mobile ?? announcement.desktop;
 
+  if (errorConsulta || errorImagen || (!desktopImage && !mobileImage)) {
+    return null;
+  }
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm sm:p-6"
@@ -100,25 +104,17 @@ export function AnnouncementModal({ visible }: { visible: boolean }) {
         >
           <X size={22} aria-hidden="true" />
         </button>
-        {cargando ? (
-          <p className="rounded-xl bg-white px-6 py-4 text-sm text-slate-700 shadow-xl" role="status">Cargando anuncio…</p>
-        ) : errorConsulta || (!desktopImage && !mobileImage) ? (
-          <p className="rounded-xl bg-white px-6 py-4 text-sm text-slate-700 shadow-xl" role="status">
-            {errorConsulta ? "No se pudo consultar el anuncio en este momento." : "No hay imágenes activas de anuncio con las medidas requeridas."}
-          </p>
-        ) : errorImagen ? (
-          <p className="rounded-xl bg-white px-6 py-4 text-sm text-slate-700 shadow-xl" role="alert">No se pudo cargar la imagen del anuncio.</p>
-        ) : (
-          <picture>
-            {mobileImage && <source media="(max-width: 640px)" srcSet={mobileImage.imageUrl} />}
-            {desktopImage && <img
+        <picture>
+          {mobileImage && <source media="(max-width: 640px)" srcSet={mobileImage.imageUrl} />}
+          {desktopImage && (
+            <img
               src={desktopImage.imageUrl}
               alt={desktopImage.titulo || "Anuncio de Supermercados Betel"}
               className="max-h-[90dvh] max-w-[92vw] rounded-xl object-contain shadow-2xl"
               onError={() => setErrorImagen(true)}
-            />}
-          </picture>
-        )}
+            />
+          )}
+        </picture>
       </section>
     </div>
   );
