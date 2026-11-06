@@ -16,7 +16,7 @@ export const PROMOS_DATA: PromoDay[] = [
     orden: 0,
     dayName: 'Lunes',
     shortDay: 'LUN',
-    title: 'Lunes de Aseo',
+    title: 'Lunes de Aseos',
     description: 'Comienza tu semana ahorrando al máximo en los productos esenciales de la canasta familiar.',
     badge: 'Descuentos Especiales',
     highlights: ['Frutas y verduras frescas del campo', 'Granos y abarrotes', 'Ahorro directo en caja']

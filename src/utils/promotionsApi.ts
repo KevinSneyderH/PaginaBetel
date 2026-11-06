@@ -1,4 +1,6 @@
-import type { PromoDay } from "../data/promosData";
+import { useCallback, useEffect, useState } from "react";
+import { PROMOS_DATA, type PromoDay } from "../data/promosData";
+import { useCambiosEnVivo } from "./realtime";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -48,4 +50,27 @@ export async function fetchPromotions(signal?: AbortSignal): Promise<PromoDay[]>
     badge: row.badge,
     highlights: row.highlights,
   }));
+}
+
+export function usePromotions() {
+  const [promos, setPromos] = useState<PromoDay[]>(PROMOS_DATA);
+
+  const cargar = useCallback(async () => {
+    try {
+      const data = await fetchPromotions();
+      if (data && data.length > 0) {
+        setPromos(data);
+      }
+    } catch {
+      // Mantiene PROMOS_DATA de respaldo
+    }
+  }, []);
+
+  useEffect(() => {
+    void cargar();
+  }, [cargar]);
+
+  useCambiosEnVivo(["promociones_diarias"], cargar);
+
+  return { promos, recargar: cargar };
 }

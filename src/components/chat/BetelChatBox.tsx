@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { assetPath } from "../../utils/assetPath";
 import { useSedes } from "../../utils/sedesApi";
+import { usePromotions } from "../../utils/promotionsApi";
+import { useVacancies } from "../../utils/vacantesApi";
 
 /**
  * PISTA DE ACTIVACIÓN PQRS:
@@ -54,6 +56,8 @@ export type ChatIntent =
   | "order_store"
   | "store_info"
   | "stores_list"
+  | "promociones"
+  | "promocion_dia"
   | "pqrs_general"
   | "vacantes"
   | "general";
@@ -201,6 +205,41 @@ interface BetelChatBoxProps {
 const CHAT_STORAGE_KEY = "betel_chat_session_messages";
 const CHAT_SESSION_KEY = "betel_chat_session_id";
 
+function normalizeUserText(input: string): string {
+  const sinTildes = input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return sinTildes
+    .replace(/\bpromosion(es)?\b/g, (_, p1) => (p1 ? "promociones" : "promocion"))
+    .replace(/\bbacante(s)?\b/g, (_, p1) => (p1 ? "vacantes" : "vacante"))
+    .replace(/\btravaj(o|ar|ador|adores)?\b/g, (_, p1) => `trabaj${p1 || "o"}`)
+    .replace(/\bdomisili(o|os)?\b/g, (_, p1) => (p1 === "os" ? "domicilios" : "domicilio"))
+    .replace(/\borari(o|os)?\b/g, (_, p1) => (p1 === "os" ? "horarios" : "horario"))
+    .replace(/\bdireci(on|ones)?\b/g, (_, p1) => (p1 === "ones" ? "direcciones" : "direccion"))
+    .replace(/\bubipasi(on|ones)?\b/g, (_, p1) => (p1 === "ones" ? "ubicaciones" : "ubicacion"))
+    .replace(/\b(wasap|guasap|watsap|wpp|whastapp)\b/g, "whatsapp")
+    .replace(/\b(miercole|miercol|mercoles)\b/g, "miercoles")
+    .replace(/\bjueve\b/g, "jueves")
+    .replace(/\bvierne\b/g, "viernes")
+    .replace(/\blune\b/g, "lunes")
+    .replace(/\bmarte\b/g, "martes")
+    .replace(/\bseiba\b/g, "ceiba")
+    .replace(/\bchinakota\b/g, "chinacota")
+    .replace(/\b(villamal|villamall)\b/g, "villa mall")
+    .replace(/\blafloresta\b/g, "la floresta")
+    .replace(/\blagarita\b/g, "la garita")
+    .replace(/\belcontento\b/g, "el contento")
+    .replace(/\bsanrafael\b/g, "san rafael")
+    .replace(/\blospatios\b/g, "los patios")
+    .replace(/\bpradosdeleste\b/g, "prados del este")
+    .replace(/\b(cafetria|cafetaria)\b/g, "cafeteria");
+}
+
 function getInitialMessages(): ChatMessage[] {
   try {
     const saved = typeof window !== "undefined" ? sessionStorage.getItem(CHAT_STORAGE_KEY) : null;
@@ -242,6 +281,8 @@ export default function BetelChatBox({
   onToggleExpand,
 }: BetelChatBoxProps) {
   const { sedes } = useSedes();
+  const { promos } = usePromotions();
+  const { vacantes } = useVacancies();
 
   // Convertir las sedes del hook al formato de acción del chat
   const sedesActions: ChatStoreAction[] = sedes.map((s) => ({
@@ -405,30 +446,25 @@ export default function BetelChatBox({
 
     setInput("");
 
-    const norm = text
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
+    const norm = normalizeUserText(text);
 
     // Helper para buscar sede activa de forma flexible por nombre o alias común
     const findActiveStore = (q: string): ChatStoreAction | undefined => {
+      const qNorm = normalizeUserText(q);
       return sedesActions.find((s) => {
-        const sNorm = s.nombre
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase();
-        if (q.includes(sNorm)) return true;
-        if (sNorm === "la garita" && /\bgarita\b/.test(q)) return true;
-        if (sNorm === "ceiba 2" && /\bceiba\b/.test(q)) return true;
-        if (sNorm === "la floresta" && /\bfloresta\b/.test(q)) return true;
-        if (sNorm === "prados del este" && /\bprados\b/.test(q)) return true;
-        if (sNorm === "villa mall" && /\b(villamall|villa mall)\b/.test(q)) return true;
-        if (sNorm === "el contento" && /\bcontento\b/.test(q)) return true;
-        if (sNorm === "los patios" && /\bpatios\b/.test(q)) return true;
-        if (sNorm === "chinacota" && /\bchinacota\b/.test(q)) return true;
-        if (sNorm === "san rafael" && /\bsan rafael\b/.test(q)) return true;
-        if (sNorm === "bocono" && /\bbocono\b/.test(q)) return true;
-        if (sNorm === "chapinero" && /\bchapinero\b/.test(q)) return true;
+        const sNorm = normalizeUserText(s.nombre);
+        if (qNorm.includes(sNorm)) return true;
+        if (sNorm === "la garita" && /\b(garita|lagarita)\b/.test(qNorm)) return true;
+        if (sNorm === "ceiba 2" && /\b(ceiba|seiba)\b/.test(qNorm)) return true;
+        if (sNorm === "la floresta" && /\b(floresta|lafloresta)\b/.test(qNorm)) return true;
+        if (sNorm === "prados del este" && /\b(prados|prado)\b/.test(qNorm)) return true;
+        if (sNorm === "villa mall" && /\b(villamall|villa mall|villamal|villa mal)\b/.test(qNorm)) return true;
+        if (sNorm === "el contento" && /\b(contento|elcontento)\b/.test(qNorm)) return true;
+        if (sNorm === "los patios" && /\b(patios|patio|lospatios)\b/.test(qNorm)) return true;
+        if (sNorm === "chinacota" && /\b(chinacota|chinakota)\b/.test(qNorm)) return true;
+        if (sNorm === "san rafael" && /\b(san rafael|sanrafael|rafael)\b/.test(qNorm)) return true;
+        if (sNorm === "bocono" && /\b(bocono|vicono)\b/.test(qNorm)) return true;
+        if (sNorm === "chapinero" && /\b(chapinero|chapi)\b/.test(qNorm)) return true;
         return false;
       });
     };
@@ -447,18 +483,27 @@ export default function BetelChatBox({
 
     // 1. INTENT: Trabajo / Empleo / Vacantes / Ofertas de trabajo (NUNCA confundir con ofertas de supermercado)
     const isJobInquiry =
-      /\b(trabajo|trabajar|empleo|empleos|vacante|vacantes|laboral|laborales|hoja de vida|curriculum|curriculo|cv|postular|postularme|postulacion|contratacion|seleccion|recursos humanos|rrhh|talento humano)\b/.test(
+      /\b(trabajo|trabajos|trabajar|empleo|empleos|vacante|vacantes|bacante|bacantes|laboral|laborales|hoja de vida|curriculum|curriculo|cv|hv|postular|postularme|postulacion|postulaciones|contratacion|seleccion|recursos humanos|rrhh|talento humano|pasar papeles|enviar papeles|meter papeles|busco trabajo|busco empleo|ay vacante|hay vacante|ay vacantes|hay vacantes|ay bacante|hay bacante|ay bacantes|hay bacantes)\b/.test(
         norm,
       ) ||
       (/\b(oferta|ofertas)\b/.test(norm) && /\b(trabajo|laboral|laborales|empleo)\b/.test(norm)) ||
       (/\b(trabajo|laboral|laborales|empleo)\b/.test(norm) && /\b(oferta|ofertas)\b/.test(norm));
 
     if (isJobInquiry) {
+      const hayVacantes = vacantes.length > 0;
+      const listadoVacantes = hayVacantes
+        ? `\n\n📌 **Convocatorias abiertas actualmente (${vacantes.length}):**\n` +
+          vacantes
+            .slice(0, 6)
+            .map((v) => `• **${v.titulo || v.cargo}** — ${v.ubicacion || "Norte de Santander"}${v.area ? ` (${v.area})` : ""}`)
+            .join("\n")
+        : "\n\nEn este momento puedes enviar tu hoja de vida para futuras convocatorias.";
+
       setMessages((current) => [
         ...current,
         newMessage(
           "assistant",
-          `💼 **Convocatorias y Oportunidades Laborales en Supermercados Betel**\n\n¡Qué alegría tu interés en ser parte de la familia Betel! 🛒✨ En Betel buscamos personas comprometidas, con vocación de servicio y ganas de crecer profesionalmente.\n\n📌 **¿Cómo postularte?**\n• Puedes ver todas nuestras **vacantes abiertas**, requisitos y cargos disponibles en la sección de [Empleo de nuestra web](#empleo).\n• Envía tu hoja de vida en PDF al correo oficial: **seleccionrh.betel@gmail.com**\n• También puedes escribir directamente al equipo de Selección en WhatsApp: **317 517 7648**.\n\nToca cualquiera de los botones de abajo para ir directamente:`,
+          `💼 **Convocatorias y Oportunidades Laborales en Supermercados Betel**\n\n¡Qué alegría tu interés en ser parte de la familia Betel! 🛒✨ En Betel buscamos personas comprometidas, con vocación de servicio y ganas de crecer profesionalmente.${listadoVacantes}\n\n📌 **¿Cómo postularte?**\n• Puedes ver todas nuestras **vacantes abiertas**, requisitos y afiches en la sección de [Empleo de nuestra web](#empleo).\n• Envía tu hoja de vida en PDF al correo oficial: **seleccionrh.betel@gmail.com**\n• También puedes escribir directamente al equipo de Selección en WhatsApp: **317 517 7648**.\n\nToca cualquiera de los botones de abajo para ir directamente:`,
           {
             intent: "vacantes",
           },
@@ -467,8 +512,96 @@ export default function BetelChatBox({
       return;
     }
 
+    // 1.5 INTENT: Promociones del día o de la semana (100% en tiempo real sincronizado con la base de datos)
+    const isCategoryPromoInquiry =
+      /\b(pollo|pollos|fruver|fruta|frutas|verdura|verduras|hortaliza|hortalizas|carne|carnes|res|cerdo|cerdos|pescado|pescados|aseo|aseos|limpieza)\b/.test(
+        norm,
+      ) &&
+      /\b(dia|promo|promos|promocion|promociones|descuento|descuentos|oferta|ofertas|cuando|precio|precios|que dia)\b/.test(
+        norm,
+      );
+
+    const isPromoInquiry =
+      (
+        /\b(promo|promos|promocion|promociones|descuento|descuentos|ahorro|ahorros|rebaja|rebajas|ganga|gangas)\b/.test(
+          norm,
+        ) ||
+        (/\b(oferta|ofertas)\b/.test(norm) && !isJobInquiry) ||
+        isCategoryPromoInquiry ||
+        /\b(que hay hoy|que tienen hoy|ofertas hoy|promo hoy|promociones hoy|que hay de promo|promos de la semana)\b/.test(
+          norm,
+        )
+      ) && !isJobInquiry;
+
+    if (isPromoInquiry) {
+      const diasNombres = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+      let diaSolicitado = diasNombres.find((d) => norm.includes(d));
+
+      if (!diaSolicitado) {
+        if (/\b(aseo|aseos|limpieza|detergente|detergentes)\b/.test(norm)) {
+          diaSolicitado = "lunes";
+        } else if (/\b(pollo|pollos)\b/.test(norm)) {
+          diaSolicitado = "martes";
+        } else if (/\b(fruver|fruta|frutas|verdura|verduras|hortaliza|hortalizas|cosecha)\b/.test(norm)) {
+          diaSolicitado = "miercoles";
+        } else if (/\b(carne|carnes|res)\b/.test(norm)) {
+          diaSolicitado = "jueves";
+        } else if (/\b(cerdo|cerdos|pescado|pescados|marisco|mariscos)\b/.test(norm)) {
+          diaSolicitado = "viernes";
+        }
+      }
+
+      const asksForToday = /\b(hoy|el dia de hoy|actual|dia de hoy)\b/.test(norm);
+      let targetDay = diaSolicitado;
+
+      if (!targetDay && asksForToday) {
+        const diaSemanaIndex = new Date().getDay();
+        targetDay = diasNombres[diaSemanaIndex];
+      }
+
+      if (targetDay && targetDay !== "sabado" && targetDay !== "domingo") {
+        const promoDia = promos.find(
+          (p) =>
+            p.id.toLowerCase() === targetDay ||
+            p.dayName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === targetDay,
+        );
+
+        if (promoDia) {
+          const highlightsList = (promoDia.highlights || []).map((h) => `• ${h}`).join("\n");
+          setMessages((current) => [
+            ...current,
+            newMessage(
+              "assistant",
+              `🏷️ **${promoDia.dayName}: ${promoDia.title}** (${promoDia.badge})\n${promoDia.description}\n\n**Destacados del día:**\n${highlightsList}\n\n¿Deseas pedir un domicilio para aprovechar estas promociones?`,
+              {
+                intent: "promocion_dia",
+              },
+            ),
+          ]);
+          return;
+        }
+      }
+
+      // Consulta general de todas las promociones de la semana
+      const listaPromos = promos
+        .map((p) => `• **${p.dayName} (${p.title}):** ${p.description}`)
+        .join("\n");
+
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `🏷️ **Calendario de Promociones Semanales en Supermercados Betel:**\n\n${listaPromos}\n\nAdemás, todos los fines de semana tenemos ofertas especiales en todas nuestras sedes. Puedes elegir un día específico para ver sus detalles o pedir a domicilio:`,
+          {
+            intent: "promociones",
+          },
+        ),
+      ]);
+      return;
+    }
+
     // 2. INTENT: Domicilios / Pedidos
-    const isOrderInquiry = /\b(pedido|pedidos|domicilio|domicilios|comprar|compra|pedir|ordenar|llevar a casa)\b/.test(
+    const isOrderInquiry = /\b(pedido|pedidos|domicilio|domicilios|domi|domis|comprar|compra|pedir|ordenar|llevar a casa|mercado a casa|mandar mercado|envio|envios)\b/.test(
       norm,
     );
     if (isOrderInquiry) {
@@ -498,7 +631,7 @@ export default function BetelChatBox({
 
     // 3. INTENT: Consulta de sede específica (ej: "La Garita", "Boconó", etc.)
     const specificStore = findActiveStore(norm);
-    const mentionsStoreKeywords = /\b(sede|donde|ubicacion|ubicado|direccion|horario|telefono|contacto|queda|abierto|maps|mapa|llegar|ruta)\b/.test(
+    const mentionsStoreKeywords = /\b(sede|sedes|donde|donde queda|donde estan|ubicacion|ubicado|direccion|direcciones|horario|horarios|telefono|telefonos|contacto|queda|quedan|abierto|maps|mapa|llegar|ruta|sucursal|sucursales|tienda|tiendas|puntos de venta)\b/.test(
       norm,
     );
     const isPromoSpecific = /\b(promo|promos|promocion|promociones|descuento|descuentos)\b/.test(norm);
@@ -526,23 +659,16 @@ export default function BetelChatBox({
 
     // 4. INTENT: Consulta general de sedes / direcciones / puntos de venta
     const isAllStoresQuery =
-      /\b(sedes|sede|sucursales|sucursal|tiendas|tienda|puntos de venta|donde estan|donde quedan|donde los encuentro|ubicaciones|direcciones)\b/.test(
+      /\b(sedes|sede|sucursales|sucursal|tiendas|tienda|puntos de venta|donde estan|donde quedan|donde los encuentro|donde estan ubicados|ubicaciones|direcciones|lista de tiendas|lista de sedes)\b/.test(
         norm,
       ) && !/\b(cafeteria|cafeterias|promo|promocion|promociones|descuento)\b/.test(norm);
 
     if (isAllStoresQuery) {
-      const lista = sedesActions
-        .map(
-          (s) =>
-            `• **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.direccion} — Tel: ${s.telefono}${s.horario ? ` (${s.horario})` : ""}`,
-        )
-        .join("\n");
-
       setMessages((current) => [
         ...current,
         newMessage(
           "assistant",
-          `📍 **Nuestras ${sedesActions.length} Sedes Activas de Supermercados Betel:**\n\n${lista}\n\nPuedes pulsar **Abrir en Maps** en cualquiera de las sedes a continuación para ver cómo llegar o escribir a su **WhatsApp**:`,
+          `📍 **Nuestras ${sedesActions.length} Sedes Activas de Supermercados Betel:**\n\nEncuentra a continuación cada una de nuestras sedes. Puedes pulsar **Abrir en Google Maps** para ver cómo llegar o escribir directamente a su **WhatsApp**:`,
           {
             intent: "stores_list",
             stores: sedesActions,
@@ -554,7 +680,7 @@ export default function BetelChatBox({
     }
 
     // 5. INTENT: Cafeterías Betel
-    const isCafeteriaQuery = /\b(cafeteria|cafeterias|cafe|tinto|desayuno|desayunos|almuerzo|almuerzos|panaderia|pasteleria)\b/.test(
+    const isCafeteriaQuery = /\b(cafeteria|cafeterias|cafe|tinto|desayuno|desayunos|almuerzo|almuerzos|panaderia|pasteleria|pastel|combos)\b/.test(
       norm,
     );
     if (isCafeteriaQuery) {
@@ -581,7 +707,7 @@ export default function BetelChatBox({
     }
 
     // 6. INTENT: 24 Horas o Servicio Nocturno
-    const isNightServiceQuery = /\b(24 horas|24h|veinticuatro horas|nocturn[ao]|de noche|madrugada|abierto de noche)\b/.test(
+    const isNightServiceQuery = /\b(24 horas|24h|24 hs|veinticuatro horas|nocturn[ao]|de noche|madrugada|abierto de noche|ventanilla)\b/.test(
       norm,
     );
     if (isNightServiceQuery) {
@@ -1175,6 +1301,60 @@ export default function BetelChatBox({
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* 2.5 Promociones Semanales: Explorar por día o pedir domicilio paso a paso */}
+                {message.intent === "promociones" && (
+                  <div className="mt-3 space-y-2.5 border-t border-slate-100 pt-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      Explorar por día:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {promos.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => sendMessage(undefined, `Ofertas de ${p.dayName}`)}
+                          className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 hover:border-emerald-300 px-2.5 py-1 text-xs font-semibold text-emerald-900 transition active:scale-95 shadow-2xs"
+                        >
+                          <Tag size={11} className="text-emerald-600" />
+                          <span>{p.dayName}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={startOrderFlow}
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 px-3 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
+                      >
+                        <ShoppingBag size={14} />
+                        Pedir a domicilio (Elegir sede)
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2.6 Promoción de Día Específico: Pedir domicilio o ver toda la semana */}
+                {message.intent === "promocion_dia" && (
+                  <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-2.5">
+                    <button
+                      type="button"
+                      onClick={startOrderFlow}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 px-3 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
+                    >
+                      <ShoppingBag size={14} />
+                      Pedir a domicilio esta oferta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => sendMessage(undefined, "Promociones de la semana")}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition active:scale-95"
+                    >
+                      <Tag size={13} className="text-slate-500" />
+                      Ver toda la semana
+                    </button>
                   </div>
                 )}
 
