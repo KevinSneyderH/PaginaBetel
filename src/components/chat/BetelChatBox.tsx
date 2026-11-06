@@ -231,6 +231,10 @@ function normalizeUserText(input: string): string {
     .replace(/\bseiba\b/g, "ceiba")
     .replace(/\bchinakota\b/g, "chinacota")
     .replace(/\b(villamal|villamall)\b/g, "villa mall")
+    .replace(/\b(villadelrosario|villarosario)\b/g, "villa del rosario")
+    .replace(/\bsanjosedecucuta\b/g, "san jose de cucuta")
+    .replace(/\belzulia\b/g, "el zulia")
+    .replace(/\bsancayetano\b/g, "san cayetano")
     .replace(/\blafloresta\b/g, "la floresta")
     .replace(/\blagarita\b/g, "la garita")
     .replace(/\belcontento\b/g, "el contento")
@@ -238,6 +242,69 @@ function normalizeUserText(input: string): string {
     .replace(/\blospatios\b/g, "los patios")
     .replace(/\bpradosdeleste\b/g, "prados del este")
     .replace(/\b(cafetria|cafetaria)\b/g, "cafeteria");
+}
+
+export interface MunicipioInfo {
+  key: string;
+  nombre: string;
+  regex: RegExp;
+}
+
+export const MUNICIPIOS_BETEL: MunicipioInfo[] = [
+  {
+    key: "cucuta",
+    nombre: "Cúcuta",
+    regex: /\b(cucuta|san jose de cucuta)\b/,
+  },
+  {
+    key: "los patios",
+    nombre: "Los Patios",
+    regex: /\b(los patios|lospatios|patios)\b/,
+  },
+  {
+    key: "villa del rosario",
+    nombre: "Villa del Rosario",
+    regex: /\b(villa del rosario|villadelrosario|villa rosario|villarosario|la villa)\b/,
+  },
+  {
+    key: "chinacota",
+    nombre: "Chinácota",
+    regex: /\b(chinacota|chinakota)\b/,
+  },
+];
+
+export const MUNICIPIOS_NO_DISPONIBLES: { nombre: string; regex: RegExp }[] = [
+  { nombre: "El Zulia", regex: /\b(el zulia|zulia)\b/ },
+  { nombre: "San Cayetano", regex: /\b(san cayetano|sancayetano)\b/ },
+  { nombre: "Pamplona", regex: /\b(pamplona)\b/ },
+  { nombre: "Ocaña", regex: /\b(ocana|ocaña)\b/ },
+  { nombre: "Tibú", regex: /\b(tibu|tibu)\b/ },
+  { nombre: "Bucaramanga", regex: /\b(bucaramanga|floridablanca|giron|giron|piedecuesta)\b/ },
+  { nombre: "Bogotá", regex: /\b(bogota|bogota)\b/ },
+  { nombre: "Medellín", regex: /\b(medellin|medellin)\b/ },
+];
+
+export function getStoresByMunicipio(municipioKey: string, stores: ChatStoreAction[]): ChatStoreAction[] {
+  return stores.filter((s) => {
+    const sCity = normalizeUserText(s.ciudad || "");
+    const sName = normalizeUserText(s.nombre || "");
+    if (municipioKey === "cucuta") {
+      return (
+        sCity.includes("cucuta") ||
+        (!sCity && !sName.includes("patios") && !sName.includes("chinacota") && !sName.includes("villa"))
+      );
+    }
+    if (municipioKey === "los patios") {
+      return sCity.includes("patios") || sName.includes("patios");
+    }
+    if (municipioKey === "villa del rosario") {
+      return sCity.includes("villa") || sName.includes("villa mall");
+    }
+    if (municipioKey === "chinacota") {
+      return sCity.includes("chinacota") || sName.includes("chinacota");
+    }
+    return sCity.includes(municipioKey);
+  });
 }
 
 function getInitialMessages(): ChatMessage[] {
@@ -458,7 +525,7 @@ export default function BetelChatBox({
         if (sNorm === "ceiba 2" && /\b(ceiba|seiba)\b/.test(qNorm)) return true;
         if (sNorm === "la floresta" && /\b(floresta|lafloresta)\b/.test(qNorm)) return true;
         if (sNorm === "prados del este" && /\b(prados|prado)\b/.test(qNorm)) return true;
-        if (sNorm === "villa mall" && /\b(villamall|villa mall|villamal|villa mal)\b/.test(qNorm)) return true;
+        if (sNorm === "villa mall" && /\b(villamall|villa mall|villamal|villa mal|villa del rosario|villadelrosario|villa rosario|villarosario)\b/.test(qNorm)) return true;
         if (sNorm === "el contento" && /\b(contento|elcontento)\b/.test(qNorm)) return true;
         if (sNorm === "los patios" && /\b(patios|patio|lospatios)\b/.test(qNorm)) return true;
         if (sNorm === "chinacota" && /\b(chinacota|chinakota)\b/.test(qNorm)) return true;
@@ -469,12 +536,23 @@ export default function BetelChatBox({
       });
     };
 
-    // Si estaba seleccionando sede de domicilio y escribe el nombre de una sede
+    // Helper para detectar municipio o ciudad consultada
+    const matchedCity = MUNICIPIOS_BETEL.find((m) => m.regex.test(norm));
+    const matchedUnsupportedCity = MUNICIPIOS_NO_DISPONIBLES.find((m) => m.regex.test(norm));
+
+    // Si estaba seleccionando sede de domicilio y escribe el nombre de una sede o municipio
     if (selectingOrderStore) {
       const matched = findActiveStore(norm);
       if (matched) {
         handleSelectOrderStore(matched);
         return;
+      }
+      if (matchedCity) {
+        const cityStores = getStoresByMunicipio(matchedCity.key, sedesActions);
+        if (cityStores.length === 1) {
+          handleSelectOrderStore(cityStores[0]);
+          return;
+        }
       }
       setSelectingOrderStore(false);
     }
@@ -615,17 +693,47 @@ export default function BetelChatBox({
             { intent: "order_store", stores: [store] },
           ),
         ]);
-      } else {
-        setSelectingOrderStore(true);
-        setMessages((current) => [
-          ...current,
-          newMessage(
-            "assistant",
-            `¡Con mucho gusto! 🚚 **¿De qué sede quieres pedir tu domicilio?**\n\nSelecciona tu sede a continuación entre nuestras ${sedesActions.length} sedes activas para mostrarte su número directo en WhatsApp:`,
-            { intent: "select_order_store", stores: sedesActions, generalPhone: ATENCION_GENERAL_PHONE },
-          ),
-        ]);
+        return;
       }
+
+      if (matchedCity) {
+        const cityStores = getStoresByMunicipio(matchedCity.key, sedesActions);
+        if (cityStores.length === 1) {
+          const single = cityStores[0];
+          setMessages((current) => [
+            ...current,
+            newMessage(
+              "assistant",
+              `¡Excelente elección! 🚚 Para realizar tu pedido a domicilio en **${matchedCity.nombre} (Betel ${single.nombre})**, comunícate al número **${single.telefono}**.\n\n📍 **Dirección:** ${single.direccion}\n🕒 **Horario:** ${single.horario || "Habitual"}${single.servicio_nocturno ? `\n🌙 **${single.servicio_nocturno}**` : ""}\n\nToca el botón a continuación para abrir WhatsApp y hacer tu pedido:`,
+              { intent: "order_store", stores: [single] },
+            ),
+          ]);
+          return;
+        }
+
+        if (cityStores.length > 1) {
+          setSelectingOrderStore(true);
+          setMessages((current) => [
+            ...current,
+            newMessage(
+              "assistant",
+              `¡Con mucho gusto! 🚚 En **${matchedCity.nombre}** contamos con **${cityStores.length} sedes**.\n\nSelecciona a continuación tu sede más cercana para mostrarte su número directo en WhatsApp:`,
+              { intent: "select_order_store", stores: cityStores, generalPhone: ATENCION_GENERAL_PHONE },
+            ),
+          ]);
+          return;
+        }
+      }
+
+      setSelectingOrderStore(true);
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `¡Con mucho gusto! 🚚 **¿De qué sede quieres pedir tu domicilio?**\n\nSelecciona tu sede a continuación entre nuestras ${sedesActions.length} sedes activas para mostrarte su número directo en WhatsApp:`,
+          { intent: "select_order_store", stores: sedesActions, generalPhone: ATENCION_GENERAL_PHONE },
+        ),
+      ]);
       return;
     }
 
@@ -655,6 +763,73 @@ export default function BetelChatBox({
         ),
       ]);
       return;
+    }
+
+    // 3.4 INTENT: Consulta de Municipio No Disponible (ej: El Zulia, Pamplona, Ocaña, Bucaramanga)
+    if (matchedUnsupportedCity) {
+      const cucutaCount = getStoresByMunicipio("cucuta", sedesActions).length;
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `📍 Actualmente **Supermercados Betel** no cuenta con tiendas físicas en el municipio de **${matchedUnsupportedCity.nombre}**.\n\n` +
+            `Nuestras **${sedesActions.length} sedes activas** se encuentran ubicadas en:\n` +
+            `• 🏙️ **Cúcuta** (${cucutaCount} sedes)\n` +
+            `• 🏘️ **Los Patios** (Sede Los Patios)\n` +
+            `• 🌳 **Villa del Rosario** (Sede Villa Mall)\n` +
+            `• 🌄 **Chinácota** (Sede Chinácota)\n\n` +
+            `¿Deseas consultar las direcciones de alguna de estas sedes o pedir a domicilio?`,
+          {
+            intent: "stores_list",
+            stores: sedesActions,
+            generalPhone: ATENCION_GENERAL_PHONE,
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // 3.5 INTENT: Consulta de todas las tiendas de un Municipio o Ciudad
+    if (matchedCity) {
+      const cityStores = getStoresByMunicipio(matchedCity.key, sedesActions);
+      if (cityStores.length === 1) {
+        const singleStore = cityStores[0];
+        setMessages((current) => [
+          ...current,
+          newMessage(
+            "assistant",
+            `📍 En **${matchedCity.nombre}** contamos con la sede **Betel ${singleStore.nombre}**:\n\n` +
+              `• 📍 **Dirección:** ${singleStore.direccion}\n` +
+              `• 📞 **Teléfono / WhatsApp:** ${singleStore.telefono}\n` +
+              `• 🕒 **Horario de atención:** ${singleStore.horario || "Habitual"}\n` +
+              `${singleStore.servicio_nocturno ? `• 🌙 **Servicio:** ${singleStore.servicio_nocturno}\n` : ""}` +
+              `${singleStore.tiene_cafeteria ? `• ☕ **Cafetería:** Disponible (${singleStore.horario_cafeteria || "Horario habitual"})\n` : ""}` +
+              `\nPuedes pulsar abajo para ver la ruta en **Google Maps** o escribir directamente por **WhatsApp**:`,
+            {
+              intent: "order_store",
+              stores: [singleStore],
+            },
+          ),
+        ]);
+        return;
+      }
+
+      if (cityStores.length > 1) {
+        setMessages((current) => [
+          ...current,
+          newMessage(
+            "assistant",
+            `📍 En **${matchedCity.nombre}** contamos con **${cityStores.length} sedes activas** de Supermercados Betel:\n\n` +
+              `Encuentra a continuación cada una de nuestras tiendas en ${matchedCity.nombre}. Puedes pulsar **Abrir en Google Maps** en cualquiera de ellas para ver cómo llegar o escribir directamente a su **WhatsApp**:`,
+            {
+              intent: "stores_list",
+              stores: cityStores,
+              generalPhone: ATENCION_GENERAL_PHONE,
+            },
+          ),
+        ]);
+        return;
+      }
     }
 
     // 4. INTENT: Consulta general de sedes / direcciones / puntos de venta
@@ -1457,7 +1632,7 @@ export default function BetelChatBox({
                       <MessageCircle size={13} /> WhatsApp RRHH (317 517 7648)
                     </a>
                     <a
-                      href="#trabaja-con-nosotros"
+                      href="#trabaja"
                       onClick={() => {
                         if (isWidget && onClose) onClose();
                       }}
@@ -1601,6 +1776,32 @@ export default function BetelChatBox({
             >
               <ShoppingBag size={13} className="text-orange-600" /> Pedir Domicilio
             </button>
+            {ENABLE_PQRS_FLOW ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => openCaseForm("PETICION")}
+                  className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-1.5 font-semibold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
+                >
+                  <CircleHelp size={13} /> Registrar PQRS
+                </button>
+                <button
+                  type="button"
+                  onClick={openStatusLookup}
+                  className="shrink-0 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
+                >
+                  Consultar radicado
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={showAtencionGeneralPqrs}
+                className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-1.5 font-semibold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
+              >
+                <Phone size={13} className="text-emerald-700" /> Atención / PQRS ({ATENCION_GENERAL_DISPLAY})
+              </button>
+            )}
             <button
               type="button"
               onClick={() => void sendMessage(undefined, "¿Cuáles son las direcciones de las sedes para abrir en Google Maps?")}
@@ -1629,32 +1830,7 @@ export default function BetelChatBox({
             >
               <Sparkles size={13} className="text-amber-500" /> Servicios y Cafeterías
             </button>
-            {ENABLE_PQRS_FLOW ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => openCaseForm("PETICION")}
-                  className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-1.5 font-semibold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
-                >
-                  <CircleHelp size={13} /> Registrar PQRS
-                </button>
-                <button
-                  type="button"
-                  onClick={openStatusLookup}
-                  className="shrink-0 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
-                >
-                  Consultar radicado
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={showAtencionGeneralPqrs}
-                className="shrink-0 inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-1.5 font-semibold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
-              >
-                <Phone size={13} className="text-emerald-700" /> Atención / PQRS ({ATENCION_GENERAL_DISPLAY})
-              </button>
-            )}
+            
           </div>
         </div>
       )}

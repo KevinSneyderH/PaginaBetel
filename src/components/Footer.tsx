@@ -1,4 +1,4 @@
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, ExternalLink, MapPin } from 'lucide-react';
 import { COMPANY_DATA } from '../data/companyData';
 import { useSedes } from '../utils/sedesApi';
 import { assetPath } from '../utils/assetPath';
@@ -120,15 +120,37 @@ export function Footer({ onOpenWhatsApp }: FooterProps) {
               </a>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400">
-              {sedes.map((sede) => (
-                <div key={sede.id} className="p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
-                  <div className="font-semibold text-slate-200">{sede.name}</div>
-                  <div className="text-slate-400 text-[11px] truncate">{sede.address}</div>
-                  <div className="text-emerald-400 font-medium text-[11px] mt-0.5">
-                    Tel: {sede.phone}
-                  </div>
-                </div>
-              ))}
+              {sedes.map((sede) => {
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  sede.mapQuery || `Supermercados Betel ${sede.name}, ${sede.address}, ${sede.city || 'Cúcuta'}`
+                )}`;
+                return (
+                  <a
+                    key={sede.id}
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Ver ubicación de Betel ${sede.name} en Google Maps`}
+                    className="group block p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-lime-500/50 transition-all cursor-pointer shadow-xs"
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="font-semibold text-slate-200 group-hover:text-lime-300 transition-colors flex items-center gap-1.5 truncate">
+                        <MapPin className="w-3.5 h-3.5 text-lime-400 shrink-0 group-hover:scale-110 transition-transform" />
+                        <span className="truncate">{sede.name}</span>
+                      </div>
+                      <span className="flex items-center gap-0.5 text-[10px] text-lime-400/80 group-hover:text-lime-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <span>Maps</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </span>
+                    </div>
+                    <div className="text-slate-400 text-[11px] truncate mt-1">{sede.address}</div>
+                    <div className="text-emerald-400 font-medium text-[11px] mt-1 flex items-center justify-between">
+                      <span>Tel: {sede.phone}</span>
+                      {sede.city && <span className="text-[10px] text-slate-500 font-normal">{sede.city}</span>}
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </div>
 
