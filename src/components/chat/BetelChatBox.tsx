@@ -7,6 +7,7 @@ import {
   CircleHelp,
   Copy,
   ExternalLink,
+  FileText,
   MapPin,
   Maximize2,
   MessageCircle,
@@ -74,6 +75,14 @@ export type ChatMessage = {
   intent?: ChatIntent;
   stores?: ChatStoreAction[];
   generalPhone?: string;
+  resumenPqrs?: {
+    tipo: string;
+    nombre: string;
+    telefono: string;
+    correo?: string;
+    tienda?: string;
+    descripcion: string;
+  };
 };
 
 export type TipoCaso = "PETICION" | "QUEJA" | "RECLAMO" | "SUGERENCIA" | "ASESOR";
@@ -97,14 +106,14 @@ export type CaseData = {
 };
 
 const STEP_LABELS: Record<CaseStep, { paso: number; total: number; label: string }> = {
-  "initial-consent": { paso: 1, total: 8, label: "Autorización de datos" },
-  type: { paso: 2, total: 8, label: "Tipo de solicitud" },
-  name: { paso: 3, total: 8, label: "Nombre completo" },
-  phone: { paso: 4, total: 8, label: "Teléfono de contacto" },
-  email: { paso: 5, total: 8, label: "Correo electrónico" },
-  store: { paso: 6, total: 8, label: "Sede relacionada" },
-  description: { paso: 7, total: 8, label: "Detalle de lo ocurrido" },
-  consent: { paso: 8, total: 8, label: "Confirmación de envío" },
+  "initial-consent": { paso: 1, total: 7, label: "Autorización de datos" },
+  type: { paso: 2, total: 7, label: "Tipo de solicitud" },
+  name: { paso: 3, total: 7, label: "Nombre completo" },
+  phone: { paso: 4, total: 7, label: "Teléfono de contacto" },
+  email: { paso: 5, total: 7, label: "Correo electrónico" },
+  store: { paso: 6, total: 7, label: "Sede relacionada" },
+  description: { paso: 7, total: 7, label: "Detalle de los hechos" },
+  consent: { paso: 7, total: 7, label: "Resumen y confirmación" },
   "status-code": { paso: 1, total: 1, label: "Consultar radicado" },
 };
 
@@ -1107,7 +1116,7 @@ export default function BetelChatBox({
       ...current,
       newMessage(
         "assistant",
-        "Te guiaré paso a paso para radicar tu caso. Antes de solicitar tus datos de contacto, necesitamos tu autorización para usarlos únicamente en la atención de tu solicitud. ¿Autorizas el tratamiento de tus datos? Responde Sí o No.",
+        "🔒 **Paso 1 de 7 — Autorización de Tratamiento de Datos:**\n\nTe guiaré paso a paso para radicar tu caso oficial ante Supermercados Betel.\n\nPara poder gestionar tu solicitud y notificarte la respuesta, ¿autorizas el tratamiento de tus datos de contacto conforme a nuestra política de protección de datos?\n\n👇 **Selecciona una de las opciones abajo para continuar:**",
       ),
     ]);
   };
@@ -1123,9 +1132,10 @@ export default function BetelChatBox({
       ...current,
       newMessage(
         "assistant",
-        "Por favor escribe el código de seguimiento de tu solicitud (ejemplo: 8 a 16 caracteres alfanuméricos) para consultar su estado en tiempo real.",
+        "🔍 **Consulta de Estado de Solicitud:**\n\nPor favor escribe el código alfanumérico de tu solicitud en el **campo de texto de abajo 👇** *(ejemplo: 8 a 16 caracteres)* para verificar su estado en tiempo real.",
       ),
     ]);
+    setTimeout(() => inputRef.current?.focus(), 150);
   };
 
   const answerCaseStep = async (answer: string) => {
@@ -1138,12 +1148,27 @@ export default function BetelChatBox({
       .replace(/\s+/g, " ")
       .trim();
 
+    if (["cancelar", "salir", "no gracias"].includes(normalized)) {
+      setShowCaseForm(false);
+      setCaseStep(null);
+      setMessages((current) => [
+        ...current,
+        newMessage("user", value),
+        newMessage("assistant", "Entendido. He cancelado el proceso y no registré ninguna solicitud. Si necesitas algo más, aquí estoy para ayudarte."),
+      ]);
+      return;
+    }
+
     if (caseStep === "initial-consent") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       if (/\b(si|acepto|autorizo|de acuerdo|claro|por supuesto)\b/.test(normalized)) {
         setCaseStep("type");
         setMessages((current) => [
           ...current,
-          newMessage("assistant", "¡Perfecto! Selecciona qué tipo de trámite deseas realizar:"),
+          newMessage(
+            "assistant",
+            "📋 **Paso 2 de 7 — Tipo de Solicitud:**\n¿Qué tipo de trámite deseas radicar ante Supermercados Betel?\n\n👇 **Selecciona una de las opciones tocando los botones:**",
+          ),
         ]);
       } else {
         setShowCaseForm(false);
@@ -1152,7 +1177,7 @@ export default function BetelChatBox({
           ...current,
           newMessage(
             "assistant",
-            "Entendido. Sin tu consentimiento no podemos almacenar datos personales para la PQRS. Si deseas continuar en otro momento, aquí estaré.",
+            "Comprendo. Sin tu autorización no podemos registrar tus datos ni abrir el caso. Si deseas consultar otra información, aquí estaré.",
           ),
         ]);
       }
@@ -1160,6 +1185,7 @@ export default function BetelChatBox({
     }
 
     if (caseStep === "type") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       const mapeoTipo: Record<string, TipoCaso> = {
         peticion: "PETICION",
         queja: "QUEJA",
@@ -1172,35 +1198,41 @@ export default function BetelChatBox({
       setCaseStep("name");
       setMessages((current) => [
         ...current,
-        newMessage("assistant", `Trámite: ${elegido}. Por favor indícame tu nombre completo:`),
+        newMessage("assistant", "✍️ **Paso 3 de 7 — Tu Nombre Completo:**\nPor favor escribe tu nombre y apellido en el **campo de texto de abajo 👇**"),
       ]);
+      setTimeout(() => inputRef.current?.focus(), 150);
       return;
     }
 
     if (caseStep === "name") {
-      if (value.length < 2) {
+      setMessages((current) => [...current, newMessage("user", value)]);
+      if (value.length < 2 || value.length > 120) {
         setMessages((current) => [
           ...current,
-          newMessage("assistant", "Por favor ingresa un nombre válido (mínimo 2 caracteres):"),
+          newMessage("assistant", "Por favor escribe tu nombre completo (mínimo 2 letras) en el **campo de texto de abajo 👇**"),
         ]);
+        setTimeout(() => inputRef.current?.focus(), 150);
         return;
       }
       setCaseData((prev) => ({ ...prev, nombre: value }));
       setCaseStep("phone");
       setMessages((current) => [
         ...current,
-        newMessage("assistant", `Gracias, ${value}. Ahora escribe tu número de teléfono o celular de contacto:`),
+        newMessage("assistant", "📱 **Paso 4 de 7 — Teléfono o Celular:**\nEscribe tu número de celular o teléfono en el **campo de texto de abajo 👇** para notificarte avances y respuestas."),
       ]);
+      setTimeout(() => inputRef.current?.focus(), 150);
       return;
     }
 
     if (caseStep === "phone") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       const soloNumeros = value.replace(/\D/g, "");
-      if (soloNumeros.length < 7) {
+      if (soloNumeros.length < 7 || value.length > 20) {
         setMessages((current) => [
           ...current,
-          newMessage("assistant", "Por favor ingresa un número telefónico válido (mínimo 7 dígitos):"),
+          newMessage("assistant", "Por favor escribe un número de teléfono válido de al menos 7 dígitos en el **campo de texto de abajo 👇**"),
         ]);
+        setTimeout(() => inputRef.current?.focus(), 150);
         return;
       }
       setCaseData((prev) => ({ ...prev, telefono: soloNumeros }));
@@ -1209,19 +1241,22 @@ export default function BetelChatBox({
         ...current,
         newMessage(
           "assistant",
-          "Ingresa tu correo electrónico para enviarte notificaciones del caso (o escribe 'Omitir' si prefieres no darlo):",
+          "✉️ **Paso 5 de 7 — Correo Electrónico (Opcional):**\nEscribe tu correo en el **campo de texto de abajo 👇**, o pulsa el botón **«Omitir correo»** si no tienes.",
         ),
       ]);
+      setTimeout(() => inputRef.current?.focus(), 150);
       return;
     }
 
     if (caseStep === "email") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       const omitir = /\b(omitir|no|ninguno|saltar|pasar)\b/.test(normalized);
       if (!omitir && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
         setMessages((current) => [
           ...current,
-          newMessage("assistant", "El correo ingresado no es válido. Escribe un correo correcto o escribe 'Omitir':"),
+          newMessage("assistant", "El correo no tiene un formato válido. Puedes corregirlo en el **campo de texto de abajo 👇** o presionar el botón **«Omitir correo»**."),
         ]);
+        setTimeout(() => inputRef.current?.focus(), 150);
         return;
       }
       setCaseData((prev) => ({ ...prev, correo: omitir ? "" : value }));
@@ -1230,49 +1265,87 @@ export default function BetelChatBox({
         ...current,
         newMessage(
           "assistant",
-          "¿Con cuál sede o tienda de Supermercados Betel está relacionada tu solicitud? Puedes pulsar una de las sedes a continuación o escribir 'Omitir':",
+          "🏬 **Paso 6 de 7 — Sede Relacionada (Opcional):**\n¿En cuál de nuestras sedes ocurrieron los hechos?\n\n👇 **Toca tu sede en los botones de abajo o presiona «Omitir sede»:**",
         ),
       ]);
       return;
     }
 
     if (caseStep === "store") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       const omitir = /\b(omitir|ninguna|no se|general)\b/.test(normalized);
-      const tienda = omitir ? "General / No especificada" : value;
+      const matchedStore = sedesActions.find(
+        (s) =>
+          s.nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === normalized ||
+          normalized.includes(s.nombre.toLowerCase()),
+      );
+      const tienda = omitir ? "" : matchedStore?.nombre || value;
       setCaseData((prev) => ({ ...prev, tienda }));
       setCaseStep("description");
       setMessages((current) => [
         ...current,
         newMessage(
           "assistant",
-          `Sede: ${tienda}.\nAhora detalla brevemente lo ocurrido o el motivo de tu solicitud (mínimo 10 caracteres):`,
+          "📝 **Paso 7 de 7 — Detalle de lo sucedido:**\nPor favor describe con claridad lo ocurrido o tu inconformidad en el **campo de texto de abajo 👇** *(mínimo 10 caracteres)*.",
         ),
       ]);
+      setTimeout(() => inputRef.current?.focus(), 150);
       return;
     }
 
     if (caseStep === "description") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       if (value.length < 10) {
         setMessages((current) => [
           ...current,
-          newMessage("assistant", "Por favor describe tu caso con un poco más de detalle (mínimo 10 caracteres):"),
+          newMessage("assistant", "La descripción debe tener al menos 10 caracteres para que nuestro equipo pueda atenderte adecuadamente. Escríbela en el **campo de texto de abajo 👇**"),
         ]);
+        setTimeout(() => inputRef.current?.focus(), 150);
         return;
       }
       const dataFinal = { ...caseData, descripcion: value };
       setCaseData(dataFinal);
       setCaseStep("consent");
+
+      const tipoLabels: Record<TipoCaso, string> = {
+        PETICION: "Petición",
+        QUEJA: "Queja",
+        RECLAMO: "Reclamo",
+        SUGERENCIA: "Sugerencia",
+        ASESOR: "Asesor",
+      };
+      const tipoDisplay = tipoLabels[caseType] || caseType;
+
+      const resumenTexto =
+        `📋 **RESUMEN DE TU SOLICITUD DE PQRS**\n\n` +
+        `Por favor verifica que todos tus datos estén correctos antes de enviarla:\n\n` +
+        `• **Tipo de solicitud:** ${tipoDisplay}\n` +
+        `• **Nombre del solicitante:** ${dataFinal.nombre}\n` +
+        `• **Teléfono de contacto:** ${dataFinal.telefono}\n` +
+        `• **Correo electrónico:** ${dataFinal.correo || "*(No registrado / Omitido)*"}\n` +
+        `• **Sede relacionada:** ${dataFinal.tienda ? `Supermercado Betel ${dataFinal.tienda}` : "*(General / No especificada)*"}\n` +
+        `• **Detalle de lo ocurrido:**\n` +
+        `> "${dataFinal.descripcion}"\n\n` +
+        `👇 **¿Confirmas que la información es correcta para radicarla oficialmente ante Supermercados Betel?**`;
+
       setMessages((current) => [
         ...current,
-        newMessage(
-          "assistant",
-          `📋 Resumen de tu solicitud:\n• Tipo: ${caseType}\n• Nombre: ${dataFinal.nombre}\n• Teléfono: ${dataFinal.telefono}\n• Correo: ${dataFinal.correo || "No indicado"}\n• Sede: ${dataFinal.tienda}\n• Detalle: "${dataFinal.descripcion}"\n\n¿Deseas radicar formalmente esta solicitud ahora? Responde Sí para confirmar o Cancelar.`,
-        ),
+        newMessage("assistant", resumenTexto, {
+          resumenPqrs: {
+            tipo: tipoDisplay,
+            nombre: dataFinal.nombre,
+            telefono: dataFinal.telefono,
+            correo: dataFinal.correo,
+            tienda: dataFinal.tienda,
+            descripcion: dataFinal.descripcion,
+          },
+        }),
       ]);
       return;
     }
 
     if (caseStep === "consent") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       if (/\b(si|confirmar|enviar|radicar|correcto|de acuerdo)\b/.test(normalized)) {
         setSending(true);
         try {
@@ -1296,19 +1369,15 @@ export default function BetelChatBox({
             ...current,
             newMessage(
               "assistant",
-              `🎉 ¡Tu solicitud ha sido radicada con éxito!\n\nTu código de seguimiento oficial es:`,
+              `🎉 **¡Tu solicitud ha sido radicada con éxito en Supermercados Betel!**\n\nTu código de radicado oficial es:\n👉 **${codigo}**\n\nNuestro equipo atenderá tu caso en los términos legales vigentes. Guarda este código para consultar el avance en cualquier momento desde este chat o con nuestro equipo.`,
               { isRadicado: true, radicadoCodigo: codigo },
-            ),
-            newMessage(
-              "assistant",
-              "Guarda este código para consultar el avance en cualquier momento escribiendo aquí 'Consultar radicado'. Nuestro equipo de atención al cliente lo revisará a la brevedad.",
             ),
           ]);
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : "Error al registrar la solicitud.";
           setMessages((current) => [
             ...current,
-            newMessage("assistant", `Hubo un inconveniente al radicar la solicitud: ${errorMsg}. Por favor intenta de nuevo.`),
+            newMessage("assistant", `Hubo un inconveniente al radicar la solicitud: ${errorMsg}. Presiona **«Sí, confirmar y radicar PQRS»** para intentar de nuevo o **«Cancelar»** para salir.`),
           ]);
         } finally {
           setSending(false);
@@ -1325,12 +1394,14 @@ export default function BetelChatBox({
     }
 
     if (caseStep === "status-code") {
+      setMessages((current) => [...current, newMessage("user", value)]);
       const codigo = value.replace(/[\s-]/g, "").toUpperCase();
       if (!/^[A-F0-9]{8,16}$/.test(codigo)) {
         setMessages((current) => [
           ...current,
-          newMessage("assistant", "El código ingresado no tiene un formato válido. Debe contener entre 8 y 16 letras y números. Intenta de nuevo:"),
+          newMessage("assistant", "El código debe tener entre 8 y 16 letras o números. Por favor revísalo y escríbelo de nuevo en el **campo de texto de abajo 👇**"),
         ]);
+        setTimeout(() => inputRef.current?.focus(), 150);
         return;
       }
       setSending(true);
@@ -1346,8 +1417,9 @@ export default function BetelChatBox({
         if (!data?.found) {
           setMessages((current) => [
             ...current,
-            newMessage("assistant", "No encontré una solicitud con ese código en el sistema. Verifica que esté bien escrito e inténtalo de nuevo."),
+            newMessage("assistant", "No encontré una solicitud con ese código en el sistema. Verifica que esté bien escrito e inténtalo de nuevo en el **campo de texto de abajo 👇**"),
           ]);
+          setTimeout(() => inputRef.current?.focus(), 150);
         } else {
           const labels: Record<string, string> = {
             PENDIENTE: "Recibida; está pendiente de revisión por el equipo Betel.",
@@ -1361,7 +1433,7 @@ export default function BetelChatBox({
               : "";
           setMessages((current) => [
             ...current,
-            newMessage("assistant", `📋 Solicitud ${data.codigo}:\nEstado: ${estado}${respuesta}`),
+            newMessage("assistant", `📋 **Solicitud ${data.codigo}:**\n• Estado: **${estado}**${respuesta}`),
           ]);
         }
       } catch {
@@ -1373,6 +1445,37 @@ export default function BetelChatBox({
         setSending(false);
       }
     }
+  };
+
+  const isTypingStep = Boolean(
+    ENABLE_PQRS_FLOW &&
+      showCaseForm &&
+      (caseStep === "name" ||
+        caseStep === "phone" ||
+        caseStep === "email" ||
+        caseStep === "description" ||
+        caseStep === "status-code"),
+  );
+
+  const getInputPlaceholder = () => {
+    if (ENABLE_PQRS_FLOW && showCaseForm && caseStep) {
+      switch (caseStep) {
+        case "name":
+          return "✍️ Escribe tu nombre completo aquí (Ej: Juan Pérez)...";
+        case "phone":
+          return "📱 Escribe tu número de celular o teléfono aquí...";
+        case "email":
+          return "✉️ Escribe tu correo aquí (o presiona Omitir correo arriba)...";
+        case "description":
+          return "📝 Describe lo sucedido con claridad aquí (mínimo 10 caracteres)...";
+        case "status-code":
+          return "🔍 Escribe tu código de radicado aquí (ej: 8-16 dígitos)...";
+        default:
+          return "Selecciona una opción arriba para continuar…";
+      }
+    }
+    if (selectingOrderStore) return "Elige una sede arriba o escríbela aquí…";
+    return "Pregunta por domicilios, sedes, promociones, cafeterías…";
   };
 
   return (
@@ -1730,6 +1833,47 @@ export default function BetelChatBox({
                   </div>
                 )}
 
+                {/* Resumen de la Solicitud antes del envío final */}
+                {message.resumenPqrs && (
+                  <div className="mt-3 overflow-hidden rounded-2xl border border-emerald-300 bg-emerald-50/90 p-3.5 text-xs text-slate-800 shadow-sm">
+                    <div className="flex items-center justify-between border-b border-emerald-200/80 pb-2">
+                      <span className="flex items-center gap-1.5 font-black uppercase tracking-wider text-[11px] text-emerald-950">
+                        <FileText size={14} className="text-emerald-600" />
+                        Resumen de la Solicitud
+                      </span>
+                      <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[10px] font-black uppercase text-white shadow-xs">
+                        {message.resumenPqrs.tipo}
+                      </span>
+                    </div>
+
+                    <div className="mt-2.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2 text-[11px]">
+                      <div className="rounded-xl bg-white/90 p-2 border border-emerald-100">
+                        <span className="block text-[10px] font-bold uppercase text-slate-400">Solicitante</span>
+                        <span className="font-semibold text-slate-900">{message.resumenPqrs.nombre}</span>
+                      </div>
+                      <div className="rounded-xl bg-white/90 p-2 border border-emerald-100">
+                        <span className="block text-[10px] font-bold uppercase text-slate-400">Teléfono</span>
+                        <span className="font-semibold text-slate-900">{message.resumenPqrs.telefono}</span>
+                      </div>
+                      <div className="rounded-xl bg-white/90 p-2 border border-emerald-100">
+                        <span className="block text-[10px] font-bold uppercase text-slate-400">Correo</span>
+                        <span className="font-semibold text-slate-900">{message.resumenPqrs.correo || "No registrado (Omitido)"}</span>
+                      </div>
+                      <div className="rounded-xl bg-white/90 p-2 border border-emerald-100">
+                        <span className="block text-[10px] font-bold uppercase text-slate-400">Sede</span>
+                        <span className="font-semibold text-slate-900">{message.resumenPqrs.tienda ? `Betel ${message.resumenPqrs.tienda}` : "General / No especificada"}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 rounded-xl bg-white/95 p-2.5 border border-emerald-100">
+                      <span className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Detalle de lo ocurrido</span>
+                      <p className="text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed italic">
+                        "{message.resumenPqrs.descripcion}"
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Tarjeta de Radicado Oficial (cuando ENABLE_PQRS_FLOW === true) */}
                 {message.isRadicado && message.radicadoCodigo && (
                   <div className="mt-3 overflow-hidden rounded-2xl border-2 border-dashed border-emerald-500 bg-emerald-50/70 p-3 text-slate-900">
@@ -1787,65 +1931,160 @@ export default function BetelChatBox({
 
         {/* Chips de respuestas rápidas durante el flujo de caso PQRS (solo cuando ENABLE_PQRS_FLOW === true) */}
         {ENABLE_PQRS_FLOW && showCaseForm && caseStep && (
-          <div className="space-y-2 rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Selecciona una opción:
-            </p>
+          <div className="space-y-2.5 rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 shadow-md">
+            {/* Header explicativo de la acción requerida */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                {caseStep === "initial-consent" && "🔒 Paso 1 de 7: Autorización de datos"}
+                {caseStep === "type" && "📋 Paso 2 de 7: Tipo de solicitud"}
+                {caseStep === "name" && "✍️ Paso 3 de 7: Tu nombre"}
+                {caseStep === "phone" && "📱 Paso 4 de 7: Teléfono de contacto"}
+                {caseStep === "email" && "✉️ Paso 5 de 7: Correo (Opcional)"}
+                {caseStep === "store" && "🏬 Paso 6 de 7: Sede (Opcional)"}
+                {caseStep === "description" && "📝 Paso 7 de 7: Describe tu caso"}
+                {caseStep === "consent" && "✅ Confirmación final de envío"}
+                {caseStep === "status-code" && "🔍 Consulta de radicado"}
+              </span>
+              <button
+                type="button"
+                onClick={() => void answerCaseStep("Cancelar")}
+                className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline"
+              >
+                Cancelar
+              </button>
+            </div>
 
-            {caseStep === "type" && (
-              <div className="flex flex-wrap gap-1.5">
-                {(["Petición", "Queja", "Reclamo", "Sugerencia", "Asesor"] as const).map((tipo) => (
-                  <button
-                    key={tipo}
-                    type="button"
-                    onClick={() => void answerCaseStep(tipo)}
-                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-900 transition hover:bg-emerald-100 active:scale-95"
-                  >
-                    {tipo}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {caseStep === "store" && (
-              <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
-                {sedes.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => void answerCaseStep(s.name)}
-                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
-                  >
-                    <MapPin size={12} className="text-orange-500" />
-                    {s.name}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => void answerCaseStep("Omitir")}
-                  className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100"
-                >
-                  Omitir sede
-                </button>
-              </div>
-            )}
-
-            {(caseStep === "initial-consent" || caseStep === "consent") && (
+            {/* Opciones según el paso */}
+            {caseStep === "initial-consent" && (
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => void answerCaseStep("Sí")}
-                  className="flex-1 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-3.5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:from-emerald-700 hover:to-emerald-800 active:scale-95"
                 >
-                  Sí, autorizo
+                  <Check size={14} /> Sí, autorizo el tratamiento
                 </button>
                 <button
                   type="button"
                   onClick={() => void answerCaseStep("No")}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   No autorizo
                 </button>
+              </div>
+            )}
+
+            {caseStep === "type" && (
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: "Petición", desc: "Requerimiento o consulta oficial", icon: "🙋‍♂️" },
+                  { id: "Queja", desc: "Inconformidad con atención o servicio", icon: "⚠️" },
+                  { id: "Reclamo", desc: "Disconformidad con producto o cobro", icon: "🔄" },
+                  { id: "Sugerencia", desc: "Propuesta de mejora para Betel", icon: "💡" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => void answerCaseStep(item.id)}
+                    className="flex flex-col items-start gap-1 rounded-xl border border-emerald-200 bg-emerald-50/70 p-2.5 text-left transition hover:border-emerald-500 hover:bg-emerald-100 active:scale-95"
+                  >
+                    <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                      <span>{item.icon}</span> {item.id}
+                    </span>
+                    <span className="text-[10px] text-slate-500 leading-tight">
+                      {item.desc}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Si es un paso que requiere escribir, guía visual con flecha animada */}
+            {isTypingStep && (
+              <div className="flex items-center gap-2.5 rounded-xl bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-950">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-white font-bold animate-bounce">
+                  ↓
+                </span>
+                <div className="flex-1 text-[11px] leading-tight">
+                  <p className="font-bold">Escribe en el campo de texto inferior:</p>
+                  <p className="text-amber-800">
+                    {caseStep === "name" && "Ingresa tu nombre y apellido completo"}
+                    {caseStep === "phone" && "Ingresa tu celular o teléfono (mínimo 7 dígitos)"}
+                    {caseStep === "email" && "Ingresa tu correo o presiona el botón 'Omitir' al lado"}
+                    {caseStep === "description" && "Explica detalladamente tu inquietud (mínimo 10 caracteres)"}
+                    {caseStep === "status-code" && "Ingresa tu código alfanumérico de radicado"}
+                  </p>
+                </div>
+                {caseStep === "email" && (
+                  <button
+                    type="button"
+                    onClick={() => void answerCaseStep("omitir")}
+                    className="shrink-0 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                  >
+                    Omitir correo ⏭️
+                  </button>
+                )}
+              </div>
+            )}
+
+            {caseStep === "store" && (
+              <div className="space-y-1.5">
+                <p className="text-[11px] text-slate-500">
+                  Toca la sede relacionada o presiona omitir si es un caso general:
+                </p>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+                  {sedes.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => void answerCaseStep(s.name)}
+                      className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 transition hover:border-emerald-500 hover:bg-emerald-50 active:scale-95"
+                    >
+                      <MapPin size={12} className="text-orange-500" />
+                      {s.name}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => void answerCaseStep("Omitir")}
+                    className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                  >
+                    Omitir sede ⏭️
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {caseStep === "consent" && (
+              <div className="space-y-2">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 p-2.5 text-xs text-emerald-950">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <Check size={14} className="text-emerald-600" />
+                    Revisa el resumen de tu solicitud arriba
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-emerald-800">
+                    Si todos tus datos están correctos, presiona confirmar para radicar y generar tu código oficial de seguimiento.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void answerCaseStep("Sí")}
+                    disabled={sending}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-emerald-700/20 transition hover:from-emerald-700 hover:to-emerald-800 active:scale-95 disabled:opacity-50"
+                  >
+                    <Check size={15} />
+                    {sending ? "Radicando tu solicitud..." : "Sí, confirmar y radicar PQRS"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void answerCaseStep("Cancelar")}
+                    disabled={sending}
+                    className="rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1922,6 +2161,27 @@ export default function BetelChatBox({
         </div>
       )}
 
+      {/* Barra de llamada a la acción hacia el campo de texto cuando se requiere escribir */}
+      {ENABLE_PQRS_FLOW && showCaseForm && isTypingStep && (
+        <div className="flex items-center justify-between gap-2 border-t border-amber-200/90 bg-gradient-to-r from-amber-50 via-lime-50 to-amber-50 px-4 py-2 text-xs font-semibold text-amber-950">
+          <span className="flex items-center gap-1.5 text-[11px]">
+            <span className="flex size-5 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-black animate-bounce">
+              ↓
+            </span>
+            <span>
+              {caseStep === "name" && "Escribe tu nombre y apellido en el campo de texto aquí abajo 👇"}
+              {caseStep === "phone" && "Escribe tu número de teléfono o celular en el campo de texto aquí abajo 👇"}
+              {caseStep === "email" && "Escribe tu correo aquí abajo (o pulsa Omitir arriba) 👇"}
+              {caseStep === "description" && "Escribe los detalles de tu caso en el campo de texto aquí abajo 👇"}
+              {caseStep === "status-code" && "Escribe el código de radicado en el campo de texto aquí abajo 👇"}
+            </span>
+          </span>
+          <span className="hidden sm:inline-block text-[10px] text-amber-800 font-bold">
+            Enviar con ↵
+          </span>
+        </div>
+      )}
+
       {/* Barra de entrada de texto */}
       <form
         onSubmit={(e) => void sendMessage(e)}
@@ -1958,14 +2218,12 @@ export default function BetelChatBox({
             setTimeout(() => setIsInputFocused(false), 200);
           }}
           disabled={sending}
-          placeholder={
-            showCaseForm
-              ? "Escribe tu respuesta aquí…"
-              : selectingOrderStore
-                ? "Elige una sede arriba o escríbela…"
-                : "Pregunta por domicilios, sedes, promociones, cafeterías…"
-          }
-          className="flex-1 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
+          placeholder={getInputPlaceholder()}
+          className={`flex-1 rounded-2xl border px-4 py-2.5 text-xs sm:text-sm outline-none transition ${
+            isTypingStep
+              ? "border-emerald-500 bg-emerald-50/25 font-medium text-slate-900 ring-2 ring-emerald-500/30 placeholder:text-emerald-700/60"
+              : "border-slate-200 bg-slate-50/80 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white"
+          }`}
         />
         <button
           type="submit"
