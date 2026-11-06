@@ -48,6 +48,8 @@ export interface ChatStoreAction {
   servicio_nocturno?: string | null;
   tiene_cafeteria?: boolean;
   horario_cafeteria?: string | null;
+  es_24_horas?: boolean;
+  tiene_ventanilla?: boolean;
   mapa_query?: string | null;
 }
 
@@ -361,6 +363,8 @@ export default function BetelChatBox({
     servicio_nocturno: s.nightService,
     tiene_cafeteria: s.hasCafeteria,
     horario_cafeteria: s.cafeteriaHours,
+    es_24_horas: s.is24Hours || /24\s*horas/i.test(s.hours || ""),
+    tiene_ventanilla: s.hasVentanilla || Boolean(s.nightService),
     mapa_query: s.mapQuery,
   }));
 
@@ -832,29 +836,7 @@ export default function BetelChatBox({
       }
     }
 
-    // 4. INTENT: Consulta general de sedes / direcciones / puntos de venta
-    const isAllStoresQuery =
-      /\b(sedes|sede|sucursales|sucursal|tiendas|tienda|puntos de venta|donde estan|donde quedan|donde los encuentro|donde estan ubicados|ubicaciones|direcciones|lista de tiendas|lista de sedes)\b/.test(
-        norm,
-      ) && !/\b(cafeteria|cafeterias|promo|promocion|promociones|descuento)\b/.test(norm);
-
-    if (isAllStoresQuery) {
-      setMessages((current) => [
-        ...current,
-        newMessage(
-          "assistant",
-          `📍 **Nuestras ${sedesActions.length} Sedes Activas de Supermercados Betel:**\n\nEncuentra a continuación cada una de nuestras sedes. Puedes pulsar **Abrir en Google Maps** para ver cómo llegar o escribir directamente a su **WhatsApp**:`,
-          {
-            intent: "stores_list",
-            stores: sedesActions,
-            generalPhone: ATENCION_GENERAL_PHONE,
-          },
-        ),
-      ]);
-      return;
-    }
-
-    // 5. INTENT: Cafeterías Betel
+    // 4. INTENT: Cafeterías Betel
     const isCafeteriaQuery = /\b(cafeteria|cafeterias|cafe|tinto|desayuno|desayunos|almuerzo|almuerzos|panaderia|pasteleria|pastel|combos)\b/.test(
       norm,
     );
@@ -881,18 +863,35 @@ export default function BetelChatBox({
       return;
     }
 
-    // 6. INTENT: 24 Horas o Servicio Nocturno
-    const isNightServiceQuery = /\b(24 horas|24h|24 hs|veinticuatro horas|nocturn[ao]|de noche|madrugada|abierto de noche|ventanilla)\b/.test(
-      norm,
+    // 5. INTENT: 24 Horas y Ventanilla Nocturna
+    const sedes24 = sedesActions.filter(
+      (s) => s.es_24_horas || /24\s*horas/i.test(s.horario || ""),
     );
-    if (isNightServiceQuery) {
-      const sedes24 = sedesActions.filter(
-        (s) => s.servicio_nocturno || s.horario?.toLowerCase().includes("24"),
+    const sedesVentanilla = sedesActions.filter(
+      (s) => s.tiene_ventanilla || Boolean(s.servicio_nocturno),
+    );
+
+    const is24hQuery =
+      /\b(24 horas|24h|24 hs|veinticuatro horas|24 hora|abierto 24|abren 24|sede 24|sedes 24|tienda 24|tiendas 24)\b/.test(
+        norm,
       );
-      const lista = sedes24
+
+    const isVentanillaQuery =
+      /\b(ventanilla|ventanillas|bentanilla|bentanillas|ventanilla nocturna|comprar por ventanilla)\b/.test(
+        norm,
+      );
+
+    const isGeneralNightQuery =
+      /\b(nocturn[ao]|de noche|madrugada|abierto de noche|servicio nocturno|atencion nocturna|horario nocturno)\b/.test(
+        norm,
+      );
+
+    // A. Preguntó específicamente por sedes 24 Horas
+    if (is24hQuery && !isVentanillaQuery) {
+      const lista24 = sedes24
         .map(
           (s) =>
-            `• **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.horario}${s.servicio_nocturno ? ` | ${s.servicio_nocturno}` : ""} — Tel: ${s.telefono}`,
+            `• 🟢 **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.direccion} — Tel: ${s.telefono} (${s.horario || "Abierto las 24 horas"})`,
         )
         .join("\n");
 
@@ -900,10 +899,98 @@ export default function BetelChatBox({
         ...current,
         newMessage(
           "assistant",
-          `🌙 **Sedes Betel con servicio 24 horas y ventanilla nocturna:**\n\n${lista}\n\n¡Siempre listos para atenderte a cualquier hora del día o de la noche!`,
+          `🌙 **Sedes de Supermercados Betel Abiertas las 24 Horas:**\n\n` +
+            `Contamos con **${sedes24.length} sedes abiertas las 24 horas** de forma ininterrumpida:\n` +
+            `${lista24}\n\n` +
+            `*(Nota: También contamos con **${sedesVentanilla.length} sedes adicionales con Ventanilla Nocturna** para atención en la noche y madrugada).*` +
+            `\n\nPuedes pulsar en cualquiera de ellas abajo para abrir en **Google Maps** o escribir a su **WhatsApp**:`,
           {
             intent: "stores_list",
             stores: sedes24,
+            generalPhone: ATENCION_GENERAL_PHONE,
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // B. Preguntó específicamente por sedes con Ventanilla Nocturna
+    if (isVentanillaQuery && !is24hQuery) {
+      const listaVentanilla = sedesVentanilla
+        .map(
+          (s) =>
+            `• 🪟 **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.servicio_nocturno || "Ventanilla nocturna"} — Tel: ${s.telefono}`,
+        )
+        .join("\n");
+
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `🪟 **Sedes de Supermercados Betel con Ventanilla Nocturna:**\n\n` +
+            `Para tus compras en horario de la noche y madrugada, contamos con servicio de ventanilla en estas **${sedesVentanilla.length} sedes**:\n` +
+            `${listaVentanilla}\n\n` +
+            `*(Nota: Recuerda que además contamos con **${sedes24.length} sedes 100% 24 Horas**: Prados del Este y Villa Mall).*` +
+            `\n\nPuedes pulsar en cualquiera de ellas abajo para ver su ubicación en **Google Maps** o escribir por **WhatsApp**:`,
+          {
+            intent: "stores_list",
+            stores: sedesVentanilla,
+            generalPhone: ATENCION_GENERAL_PHONE,
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // C. Preguntó por servicio nocturno en general o por ambas (24h y ventanilla)
+    if (isGeneralNightQuery || (is24hQuery && isVentanillaQuery)) {
+      const lista24 = sedes24
+        .map((s) => `• 🟢 **${s.nombre}** (${s.ciudad || "Cúcuta"}): Abierto las 24 horas — Tel: ${s.telefono}`)
+        .join("\n");
+      const listaVentanilla = sedesVentanilla
+        .map(
+          (s) =>
+            `• 🪟 **${s.nombre}** (${s.ciudad || "Cúcuta"}): ${s.servicio_nocturno || "Ventanilla nocturna"} — Tel: ${s.telefono}`,
+        )
+        .join("\n");
+
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `🌙 **Atención Nocturna y 24 Horas en Supermercados Betel:**\n\n` +
+            `🟢 **Sedes Abiertas las 24 Horas (${sedes24.length}):**\n${lista24}\n\n` +
+            `🪟 **Sedes con Ventanilla Nocturna (${sedesVentanilla.length}):**\n${listaVentanilla}\n\n` +
+            `¡Siempre listos para atenderte a cualquier hora! Puedes pulsar abajo para ver la ruta en **Google Maps** o escribir por **WhatsApp**:`,
+          {
+            intent: "stores_list",
+            stores: [...sedes24, ...sedesVentanilla],
+            generalPhone: ATENCION_GENERAL_PHONE,
+          },
+        ),
+      ]);
+      return;
+    }
+
+    // 6. INTENT: Consulta general de sedes / direcciones / puntos de venta
+    const isAllStoresQuery =
+      /\b(sedes|sede|sucursales|sucursal|tiendas|tienda|puntos de venta|donde estan|donde quedan|donde los encuentro|donde estan ubicados|ubicaciones|direcciones|lista de tiendas|lista de sedes)\b/.test(
+        norm,
+      ) &&
+      !/\b(cafeteria|cafeterias|promo|promocion|promociones|descuento|24 horas|24h|24 hs|veinticuatro horas|ventanilla|ventanillas|bentanilla|nocturn|madrugada)\b/.test(
+        norm,
+      );
+
+    if (isAllStoresQuery) {
+      setMessages((current) => [
+        ...current,
+        newMessage(
+          "assistant",
+          `📍 **Nuestras ${sedesActions.length} Sedes Activas de Supermercados Betel:**\n\nEncuentra a continuación cada una de nuestras sedes. Puedes pulsar **Abrir en Google Maps** para ver cómo llegar o escribir directamente a su **WhatsApp**:`,
+          {
+            intent: "stores_list",
+            stores: sedesActions,
+            generalPhone: ATENCION_GENERAL_PHONE,
           },
         ),
       ]);
